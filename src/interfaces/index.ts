@@ -1,5 +1,6 @@
 export * from './apiResponse';
 export * from './auth.interface';
+export * from './cardset.interface';
 export * from './exam.interface';
 export * from './feedback.interface';
 export * from './leaderboard.interface';

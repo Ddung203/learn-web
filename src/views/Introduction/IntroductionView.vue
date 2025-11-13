@@ -42,13 +42,20 @@
         >
           {{ t('introduction.subtitle') }}
         </p>
-        <div class="flex flex-col gap-5 lg:w-[30%] xs:flex-row">
+        <div class="flex flex-col gap-5 lg:w-[50%] xs:flex-row">
           <router-link to="/study-module">
             <Button class="flex items-center justify-center w-full"
               >{{ t('introduction.createSet') }}</Button
             >
           </router-link>
-          <router-link to="/introduction">
+          <router-link to="/card-sets">
+            <Button
+              severity="secondary"
+              class="flex items-center justify-center w-full"
+              >{{ t('introduction.viewCardSets') }}</Button
+            >
+          </router-link>
+          <router-link to="/profile">
             <Button
               severity="secondary"
               class="flex items-center justify-center w-full"

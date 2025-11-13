@@ -3,7 +3,7 @@
   import { useToast } from 'primevue/usetoast';
   import { onMounted, ref } from 'vue';
 
-  import Header from '~/components/Header.vue';
+  import HeaderThird from '~/components/HeaderThird.vue';
   import Loading from '~/components/Loading.vue';
   import ScrollToTop from '~/components/ScrollToTop.vue';
   import { STATUS_CODE } from '~/constants';
@@ -82,7 +82,7 @@
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-    <Header :title="t('profile.title')" />
+    <HeaderThird />
 
     <div class="container px-4 py-8 mx-auto">
       <div class="max-w-2xl mx-auto">

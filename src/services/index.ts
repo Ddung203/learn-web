@@ -5,6 +5,7 @@ export type PaginationParams = {
 };
 
 export * from './auth.service';
+export * from './cardset.service';
 export * from './province.service';
 export * from './study-module.service';
 export * from './user.service';

@@ -1,16 +1,20 @@
 <script setup lang="ts">
   import { reactive, ref } from 'vue';
+  import { useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import HeaderThird from '~/components/HeaderThird.vue';
   import Loading from '~/components/Loading.vue';
   import ImportCardItem from './ImportCardItem.vue';
   import ImportPopup from './ImportPopup.vue';
-  import { StudyModuleService } from '~/services';
   import ScrollToTop from '~/components/ScrollToTop.vue';
   import { useLocale } from '~/composables/useLocale';
+  import { useCardSetStore } from '~/stores';
 
+  const router = useRouter();
   const toast = useToast();
   const { t } = useLocale();
+  const cardSetStore = useCardSetStore();
+  
   const isLoading = ref(false);
   const isResendLoading = ref(false);
   const isShowPopup = ref(false);
@@ -62,7 +66,7 @@
   };
 
   // Save study module
-  const saveStudyModule = async () => {
+  const saveStudyModule = () => {
     if (!formData.title.trim()) {
       toast.add({
         severity: 'warn',
@@ -90,20 +94,30 @@
 
     try {
       isLoading.value = true;
-      const response = await StudyModuleService.createStudyModule({
+      
+      // Create card set using store
+      const newCardSet = cardSetStore.createCardSet({
         title: formData.title,
         description: formData.description,
-        data: validData,
+        cards: validData,
       });
 
       toast.add({
         severity: 'success',
         summary: t('common.success'),
-        detail: response.message || t('studyModule.toast.createSuccess'),
+        detail: t('studyModule.toast.createSuccess'),
         life: 3000,
       });
 
-      console.log('Created study module:', response.data);
+      // Reset form
+      formData.title = '';
+      formData.description = '';
+      formData.data = [];
+
+      // Navigate to the new card set
+      setTimeout(() => {
+        router.push(`/card-sets/${newCardSet.id}`);
+      }, 1000);
     } catch (error) {
       toast.add({
         severity: 'error',

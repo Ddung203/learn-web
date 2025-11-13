@@ -7,21 +7,33 @@ export const createMenuItems = (
 ): MenuConfig => {
   // Base common items
   const homeItem: MenuItem = {
-    label: 'ChocoLearn',
+    label: 'Home',
     icon: 'pi pi-home',
     command: () => navigateHandle('/introduction'),
   };
 
+  const cardSetsItem: MenuItem = {
+    label: 'My Card Sets',
+    icon: 'pi pi-clone',
+    command: () => navigateHandle('/card-sets'),
+  };
+
   const studyModuleItem: MenuItem = {
-    label: 'Create new set',
-    icon: 'pi pi-verified',
+    label: 'Create New Set',
+    icon: 'pi pi-plus-circle',
     command: () => navigateHandle('/study-module'),
   };
 
   const profileItem: MenuItem = {
-    label: 'Cá nhân',
-    icon: 'pi pi-user-edit',
+    label: 'Profile',
+    icon: 'pi pi-user',
     command: () => navigateHandle('/profile'),
+  };
+
+  const loginItem: MenuItem = {
+    label: 'Sign In',
+    icon: 'pi pi-sign-in',
+    command: () => navigateHandle('/login'),
   };
 
   const logoutItem: MenuItem = {
@@ -30,23 +42,23 @@ export const createMenuItems = (
     command: logout,
   };
 
+  // Menu for authenticated users
+  const authenticatedMenu = [
+    homeItem,
+    cardSetsItem,
+    studyModuleItem,
+    profileItem,
+    logoutItem,
+  ];
+
+  // Menu for guests
+  const guestMenu = [homeItem, cardSetsItem, studyModuleItem, loginItem];
+
   return {
-    [ROLE.ROOT]: [homeItem, profileItem, logoutItem],
-
-    [ROLE.OTHER]: [
-      homeItem,
-      studyModuleItem,
-      {
-        label: 'Sign In',
-        icon: 'pi pi-pencil',
-        command: () => navigateHandle('/login'),
-      },
-    ],
-
-    [ROLE.USER]: [homeItem, profileItem, logoutItem],
-
-    [ROLE.INTERVIEWER]: [homeItem, profileItem, logoutItem],
-
-    [ROLE.ADMIN]: [homeItem, profileItem, logoutItem],
+    [ROLE.ROOT]: authenticatedMenu,
+    [ROLE.ADMIN]: authenticatedMenu,
+    [ROLE.INTERVIEWER]: authenticatedMenu,
+    [ROLE.USER]: authenticatedMenu,
+    [ROLE.OTHER]: guestMenu,
   };
 };

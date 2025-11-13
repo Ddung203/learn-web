@@ -1,4 +1,4 @@
-export const STORE_IDS = {
+export const STORE_ID = {
   AUTH: 'auth',
   USER: 'user',
   INTERVIEWEE: 'interviewee',
@@ -8,4 +8,9 @@ export const STORE_IDS = {
   QUESTION: 'question',
   STUDENT: 'student',
   UI: 'ui',
-};
+  LOCALE: 'locale',
+  CARDSET: 'cardset',
+} as const;
+
+// Alias for backwards compatibility
+export const STORE_IDS = STORE_ID;
