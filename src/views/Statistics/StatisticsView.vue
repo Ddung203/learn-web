@@ -65,28 +65,36 @@
     if (overview.value.total_sessions >= 10) {
       badges.push({
         icon: '🎯',
-        label: 'Dedicated Learner',
-        desc: '10+ sessions',
+        label: t('statistics.badge.dedicatedLearner'),
+        desc: t('statistics.badge.dedicatedLearnerDesc'),
       });
     }
     if (overview.value.current_streak >= 7) {
-      badges.push({ icon: '🔥', label: 'Week Warrior', desc: '7 day streak' });
+      badges.push({
+        icon: '🔥',
+        label: t('statistics.badge.weekWarrior'),
+        desc: t('statistics.badge.weekWarriorDesc'),
+      });
     }
     if (overview.value.cards_mastered >= 50) {
-      badges.push({ icon: '🏆', label: 'Master', desc: '50+ cards mastered' });
+      badges.push({
+        icon: '🏆',
+        label: t('statistics.badge.master'),
+        desc: t('statistics.badge.masterDesc'),
+      });
     }
     if (overview.value.overall_accuracy >= 90) {
       badges.push({
         icon: '⭐',
-        label: 'Perfectionist',
-        desc: '90%+ accuracy',
+        label: t('statistics.badge.perfectionist'),
+        desc: t('statistics.badge.perfectionistDesc'),
       });
     }
     if (overview.value.total_study_time >= 3600) {
       badges.push({
         icon: '⏰',
-        label: 'Time Master',
-        desc: '1+ hour studied',
+        label: t('statistics.badge.timeMaster'),
+        desc: t('statistics.badge.timeMasterDesc'),
       });
     }
 
@@ -164,7 +172,7 @@
         labels,
         datasets: [
           {
-            label: 'Cards Studied',
+            label: t('statistics.cardsStudiedLabel'),
             data: dailyStats.map((stat: any) => stat.cards_studied),
             backgroundColor: 'rgba(99, 102, 241, 0.8)',
             borderColor: 'rgba(99, 102, 241, 1)',
@@ -172,7 +180,7 @@
             borderRadius: 8,
           },
           {
-            label: 'Time Spent (min)',
+            label: t('statistics.timeSpent'),
             data: dailyStats.map((stat: any) =>
               Math.round(stat.time_spent / 60)
             ),
@@ -253,7 +261,7 @@
         labels,
         datasets: [
           {
-            label: 'Sessions',
+            label: t('statistics.sessions'),
             data: performanceByMode.value.map((perf: any) => perf.sessions),
             backgroundColor: [
               'rgba(99, 102, 241, 0.9)',
@@ -295,7 +303,9 @@
                   0
                 );
                 const percentage = ((value / total) * 100).toFixed(1);
-                return `${label}: ${value} sessions (${percentage}%)`;
+                return `${label}: ${value} ${t(
+                  'statistics.sessions'
+                ).toLowerCase()} (${percentage}%)`;
               },
             },
           },
@@ -325,7 +335,7 @@
         labels,
         datasets: [
           {
-            label: 'Accuracy (%)',
+            label: t('statistics.accuracyPercent'),
             data: performanceByMode.value.map((perf: any) =>
               Math.round(perf.accuracy)
             ),
@@ -368,7 +378,7 @@
             cornerRadius: 8,
             callbacks: {
               label: function (context: any) {
-                return `Accuracy: ${context.parsed.y}%`;
+                return `${t('statistics.accuracy')}: ${context.parsed.y}%`;
               },
             },
           },
@@ -398,7 +408,7 @@
         labels,
         datasets: [
           {
-            label: 'Accuracy Trend',
+            label: t('statistics.accuracyTrend'),
             data: dailyStats.map((stat: any) => stat.accuracy),
             borderColor: 'rgba(99, 102, 241, 1)',
             backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -672,7 +682,7 @@
         <!-- Achievements -->
         <Panel
           v-if="achievements.length > 0"
-          header="🏆 Achievements"
+          :header="`🏆 ${t('statistics.achievements')}`"
           class="shadow-lg"
           toggleable
         >
@@ -701,13 +711,13 @@
           <TabPanel>
             <template #header>
               <i class="mr-2 pi pi-chart-bar"></i>
-              <span class="font-semibold">Overview</span>
+              <span class="font-semibold">{{ t('statistics.overview') }}</span>
             </template>
 
             <div class="space-y-6">
               <!-- Mastery Progress -->
               <Panel
-                header="🎯 Mastery Progress"
+                :header="`🎯 ${t('statistics.masteryProgress')}`"
                 toggleable
               >
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -715,9 +725,9 @@
                     class="p-4 transition-all duration-200 border-2 border-green-200 rounded-xl bg-green-50 hover:shadow-md"
                   >
                     <div class="flex items-center justify-between mb-3">
-                      <span class="text-lg font-semibold text-green-700"
-                        >Mastered</span
-                      >
+                      <span class="text-lg font-semibold text-green-700">{{
+                        t('statistics.mastered')
+                      }}</span>
                       <Badge
                         :value="overview.cards_mastered"
                         severity="success"
@@ -738,16 +748,16 @@
                             (overview.total_cards_studied || 1)) *
                             100
                         )
-                      }}% of total
+                      }}%
                     </p>
                   </div>
                   <div
                     class="p-4 transition-all duration-200 border-2 border-yellow-200 rounded-xl bg-yellow-50 hover:shadow-md"
                   >
                     <div class="flex items-center justify-between mb-3">
-                      <span class="text-lg font-semibold text-yellow-700"
-                        >Learning</span
-                      >
+                      <span class="text-lg font-semibold text-yellow-700">{{
+                        t('statistics.learning')
+                      }}</span>
                       <Badge
                         :value="overview.cards_learning"
                         severity="warning"
@@ -768,16 +778,16 @@
                             (overview.total_cards_studied || 1)) *
                             100
                         )
-                      }}% of total
+                      }}%
                     </p>
                   </div>
                   <div
                     class="p-4 transition-all duration-200 border-2 border-blue-200 rounded-xl bg-blue-50 hover:shadow-md"
                   >
                     <div class="flex items-center justify-between mb-3">
-                      <span class="text-lg font-semibold text-blue-700"
-                        >New</span
-                      >
+                      <span class="text-lg font-semibold text-blue-700">{{
+                        t('statistics.new')
+                      }}</span>
                       <Badge
                         :value="overview.cards_new"
                         severity="info"
@@ -798,7 +808,7 @@
                             (overview.total_cards_studied || 1)) *
                             100
                         )
-                      }}% of total
+                      }}%
                     </p>
                   </div>
                 </div>
@@ -807,7 +817,7 @@
               <!-- Charts Grid -->
               <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <Panel
-                  header="📅 Daily Activity"
+                  :header="`📅 ${t('statistics.dailyActivity')}`"
                   class="shadow-md"
                 >
                   <div class="h-80">
@@ -816,7 +826,7 @@
                 </Panel>
 
                 <Panel
-                  header="📊 Study Modes Distribution"
+                  :header="`📊 ${t('statistics.studyModesDistribution')}`"
                   class="shadow-md"
                 >
                   <div class="h-80">
@@ -825,7 +835,7 @@
                 </Panel>
 
                 <Panel
-                  header="🎯 Accuracy by Mode"
+                  :header="`🎯 ${t('statistics.accuracyByMode')}`"
                   class="shadow-md"
                 >
                   <div class="h-80">
@@ -834,7 +844,7 @@
                 </Panel>
 
                 <Panel
-                  header="📈 Accuracy Trend (30 Days)"
+                  :header="`📈 ${t('statistics.accuracyTrend')}`"
                   class="shadow-md"
                 >
                   <div class="h-80">
@@ -849,14 +859,16 @@
           <TabPanel>
             <template #header>
               <i class="mr-2 pi pi-history"></i>
-              <span class="font-semibold">Study History</span>
+              <span class="font-semibold">{{
+                t('statistics.studyHistory')
+              }}</span>
             </template>
 
             <div class="space-y-6">
               <!-- Performance Table -->
               <Panel
                 v-if="performanceByMode && performanceByMode.length > 0"
-                header="📈 Performance by Mode"
+                :header="`📈 ${t('statistics.performanceByMode')}`"
                 toggleable
               >
                 <DataTable
@@ -868,8 +880,7 @@
                 >
                   <Column
                     field="mode"
-                    header="Study Mode"
-                    sortable
+                    :header="t('statistics.studyMode')"
                   >
                     <template #body="slotProps">
                       <Tag
@@ -880,7 +891,7 @@
                   </Column>
                   <Column
                     field="sessions"
-                    header="Sessions"
+                    :header="t('statistics.sessions')"
                     sortable
                   >
                     <template #body="slotProps">
@@ -893,12 +904,12 @@
                   </Column>
                   <Column
                     field="total_cards"
-                    header="Total Cards"
+                    :header="`${t('statistics.totalCards')}`"
                     sortable
                   ></Column>
                   <Column
                     field="accuracy"
-                    header="Accuracy"
+                    :header="`${t('statistics.accuracy')}`"
                     sortable
                   >
                     <template #body="slotProps">
@@ -913,7 +924,7 @@
                   </Column>
                   <Column
                     field="avg_time_per_card"
-                    header="Avg Time/Card"
+                    :header="`${t('statistics.avgTimePerCard')}`"
                     sortable
                   >
                     <template #body="slotProps">
@@ -930,7 +941,7 @@
               <!-- Recent Sessions -->
               <Panel
                 v-if="recentSessions && recentSessions.length > 0"
-                header="🕐 Recent Study Sessions"
+                :header="`🕐 ${t('statistics.recentSessions')}`"
                 toggleable
               >
                 <DataTable
@@ -943,7 +954,7 @@
                 >
                   <Column
                     field="mode"
-                    header="Mode"
+                    :header="`${t('statistics.studyMode')}`"
                   >
                     <template #body="slotProps">
                       <Tag
@@ -954,7 +965,7 @@
                   </Column>
                   <Column
                     field="created_at"
-                    header="Date"
+                    :header="`${t('statistics.date')}`"
                     sortable
                   >
                     <template #body="slotProps">
@@ -963,7 +974,7 @@
                   </Column>
                   <Column
                     field="duration"
-                    header="Duration"
+                    :header="`${t('statistics.duration')}`"
                     sortable
                   >
                     <template #body="slotProps">
@@ -972,12 +983,12 @@
                   </Column>
                   <Column
                     field="total_cards"
-                    header="Cards"
+                    :header="`${t('statistics.totalCards')}`"
                     sortable
                   ></Column>
                   <Column
                     field="correct"
-                    header="Correct"
+                    :header="`${t('statistics.correct')}`"
                     sortable
                   >
                     <template #body="slotProps">
@@ -990,7 +1001,7 @@
                   </Column>
                   <Column
                     field="accuracy"
-                    header="Score"
+                    :header="`${t('statistics.accuracyPercent')}`"
                     sortable
                   >
                     <template #body="slotProps">
@@ -1011,14 +1022,16 @@
           <TabPanel>
             <template #header>
               <i class="mr-2 pi pi-id-card"></i>
-              <span class="font-semibold">Card Performance</span>
+              <span class="font-semibold">{{
+                t('statistics.cardPerformance')
+              }}</span>
             </template>
 
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <!-- Weak Cards -->
               <Panel
                 v-if="weakCards && weakCards.length > 0"
-                header="⚠️ Cards Need Practice"
+                :header="`⚠️ ${t('statistics.weakCards')}`"
                 toggleable
               >
                 <div class="space-y-3">
@@ -1064,7 +1077,7 @@
               <!-- Mastered Cards -->
               <Panel
                 v-if="masteredCards && masteredCards.length > 0"
-                header="✅ Mastered Cards"
+                :header="`✅ ${t('statistics.masteredCardsList')}`"
                 toggleable
               >
                 <div class="space-y-3">
