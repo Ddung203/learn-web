@@ -125,7 +125,7 @@ export default {
   },
   introduction: {
     title: 'Sẵn sàng bắt đầu học tập với ChocoLearn?',
-    subtitle: 'Tạo một bộ học để bắt đầu!',
+    subtitle: 'Tạo một bộ thẻ để bắt đầu!',
     createSet: 'Tạo bộ thẻ mới',
     viewCardSets: 'Xem bộ thẻ',
     goToProfile: 'Đi đến trang cá nhân',
@@ -138,8 +138,8 @@ export default {
     copyright: 'Bản quyền © {year}',
   },
   cardSets: {
-    title: 'Bộ thẻ học tập của bạn',
-    createNew: 'Tạo bộ thẻ mới',
+    title: 'Bộ thẻ của bạn',
+    createNew: 'Tạo',
     study: 'Học ngay',
     startStudy: 'Bắt đầu học',
     cards: 'thẻ',

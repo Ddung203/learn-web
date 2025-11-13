@@ -1,29 +1,17 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
-  import { useStatisticsStore } from '~/stores';
-  import { useLocale } from '~/composables/useLocale';
-  import Card from 'primevue/card';
-  import Panel from 'primevue/panel';
-  import ProgressBar from 'primevue/progressbar';
-  import DataTable from 'primevue/datatable';
-  import Column from 'primevue/column';
-  import TabView from 'primevue/tabview';
-  import TabPanel from 'primevue/tabpanel';
-  import Skeleton from 'primevue/skeleton';
-  import Badge from 'primevue/badge';
-  import Chip from 'primevue/chip';
-  import Tag from 'primevue/tag';
-  import Divider from 'primevue/divider';
-  import Message from 'primevue/message';
-  import Button from 'primevue/button';
-  import Avatar from 'primevue/avatar';
   import { Chart, registerables } from 'chart.js';
+
+  import { computed, onMounted, ref } from 'vue';
+  import { useRouter } from 'vue-router';
+
+  import { useLocale } from '~/composables/useLocale';
+  import { useStatisticsStore } from '~/stores';
+
   import HeaderThird from '~/components/HeaderThird.vue';
 
   Chart.register(...registerables);
 
-  const { t } = useLocale();
+  const { t, isVietnamese } = useLocale();
   const router = useRouter();
   const statisticsStore = useStatisticsStore();
 
@@ -54,8 +42,6 @@
   const overview = computed(() => statisticsStore.userStatistics);
   const recentSessions = computed(() => statisticsStore.recentSessions);
   const performanceByMode = computed(() => statisticsStore.performanceByMode);
-  const weakCards = computed(() => statisticsStore.weakCards);
-  const masteredCards = computed(() => statisticsStore.masteredCards);
 
   // Achievements computed from real backend data
   const achievements = computed(() => {
@@ -112,7 +98,9 @@
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    const locale = isVietnamese.value ? 'vi-VN' : 'en-US';
+
+    return date.toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',

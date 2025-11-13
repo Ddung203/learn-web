@@ -2,12 +2,14 @@
   import { useToast } from 'primevue/usetoast';
   import { computed, onMounted, ref } from 'vue';
 
+  import ProgressSpinner from 'primevue/progressspinner';
+
   import { watch } from 'vue';
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useAuthStore } from '~/stores';
 
-  const { t } = useLocale();
+  const { t, isVietnamese } = useLocale();
   const authStore = useAuthStore();
   const toast = useToast();
 
@@ -65,7 +67,9 @@
   const formatDate = (dateString: string) => {
     if (!dateString) return t('profile.notAvailable');
     try {
-      return new Date(dateString).toLocaleDateString('vi-VN', {
+      const locate = isVietnamese.value ? 'vi-VN' : 'en-US';
+
+      return new Date(dateString).toLocaleDateString(locate, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -145,7 +149,7 @@
           <template #content>
             <div
               v-if="user"
-              class="p-6 space-y-6"
+              class="lg:p-6 lg:space-y-6"
             >
               <!-- Full Name Section -->
               <div class="p-4 rounded-lg bg-gray-50">
@@ -172,7 +176,7 @@
                 </div>
                 <div
                   v-else
-                  class="flex gap-2"
+                  class="flex flex-col gap-2 sm:flex-row"
                 >
                   <InputText
                     v-model="newFullName"
@@ -181,21 +185,25 @@
                     :disabled="saving"
                     @keyup.enter="saveFullName"
                   />
-                  <Button
-                    icon="pi pi-check"
-                    rounded
-                    severity="success"
-                    :loading="saving"
-                    :disabled="saving"
-                    @click="saveFullName"
-                  />
-                  <Button
-                    icon="pi pi-times"
-                    rounded
-                    severity="danger"
-                    :disabled="saving"
-                    @click="cancelEditName"
-                  />
+                  <div
+                    class="flex flex-row-reverse justify-start gap-4 lg:flex-row"
+                  >
+                    <Button
+                      icon="pi pi-check"
+                      rounded
+                      severity="success"
+                      :loading="saving"
+                      :disabled="saving"
+                      @click="saveFullName"
+                    />
+                    <Button
+                      icon="pi pi-times"
+                      rounded
+                      severity="danger"
+                      :disabled="saving"
+                      @click="cancelEditName"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -204,7 +212,7 @@
               <!-- Contact Information -->
               <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <!-- Email -->
-                <div class="p-4 rounded-lg bg-gray-50">
+                <div class="px-4 py-2 rounded-lg bg-gray-50">
                   <label class="block mb-2 text-sm font-semibold text-gray-700">
                     <i class="mr-2 pi pi-envelope"></i>
                     {{ t('profile.email') }}

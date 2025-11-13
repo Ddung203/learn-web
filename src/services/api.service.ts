@@ -1,6 +1,11 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, {
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
 class ApiService {
   private axiosInstance: AxiosInstance;
@@ -22,7 +27,7 @@ class ApiService {
         }
         return config;
       },
-      (error) => Promise.reject(error),
+      (error) => Promise.reject(error)
     );
 
     // Response interceptor for error handling
@@ -32,10 +37,11 @@ class ApiService {
         if (error.response?.status === 401) {
           // Token expired or invalid
           this.removeToken();
-          window.location.href = '/login';
+          // window.location.href = '/login';
+          throw { code: 401, ...error };
         }
         return Promise.reject(error);
-      },
+      }
     );
   }
 
@@ -53,22 +59,44 @@ class ApiService {
 
   // Generic request methods
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await this.axiosInstance.get(url, config);
+    const response: AxiosResponse<T> = await this.axiosInstance.get(
+      url,
+      config
+    );
     return response.data;
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await this.axiosInstance.post(url, data, config);
+  async post<T>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    const response: AxiosResponse<T> = await this.axiosInstance.post(
+      url,
+      data,
+      config
+    );
     return response.data;
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await this.axiosInstance.put(url, data, config);
+  async put<T>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    const response: AxiosResponse<T> = await this.axiosInstance.put(
+      url,
+      data,
+      config
+    );
     return response.data;
   }
 
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await this.axiosInstance.delete(url, config);
+    const response: AxiosResponse<T> = await this.axiosInstance.delete(
+      url,
+      config
+    );
     return response.data;
   }
 

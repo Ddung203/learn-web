@@ -2,19 +2,16 @@
   import { computed, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
-  import { useConfirm } from 'primevue/useconfirm';
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useCardSetStore } from '~/stores';
 
   const router = useRouter();
   const toast = useToast();
-  const confirm = useConfirm();
-  const { t } = useLocale();
+  const { t, isVietnamese } = useLocale();
   const cardSetStore = useCardSetStore();
 
   const cardSets = computed(() => cardSetStore.getAllCardSets);
-  const loading = computed(() => cardSetStore.loading);
 
   const loadCardSets = async () => {
     try {
@@ -55,7 +52,9 @@
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
+    const locate = isVietnamese.value ? 'vi-VN' : 'en-US';
+
+    return date.toLocaleDateString(locate, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -160,7 +159,7 @@
 <style scoped>
   .line-clamp-2 {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    /* -webkit-line-clamp: 2; */
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
