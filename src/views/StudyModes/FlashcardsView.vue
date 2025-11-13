@@ -24,6 +24,7 @@
   const isDragging = ref(false);
   const dragOffset = ref(0);
   const swipeDirection = ref<'left' | 'right' | null>(null);
+  const preventClick = ref(false);
 
   const currentCard = computed(() => {
     if (!cardSet.value?.cards || cardSet.value.cards.length === 0) return null;
@@ -118,8 +119,9 @@
   const handleMouseDown = (e: MouseEvent) => {
     touchStartX.value = e.clientX;
     touchEndX.value = e.clientX;
-    isDragging.value = false; // Start as false, will become true only if moved
+    isDragging.value = false;
     swipeDirection.value = null;
+    preventClick.value = false;
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -131,6 +133,7 @@
     // Only consider it dragging if moved more than 5px
     if (Math.abs(diff) > 5) {
       isDragging.value = true;
+      preventClick.value = true; // Prevent click if dragged
       dragOffset.value = diff;
       
       if (Math.abs(diff) > 20) {
@@ -147,14 +150,12 @@
     
     // If dragged more than threshold, change card
     if (isDragging.value && Math.abs(diff) > swipeThreshold) {
-      e.stopPropagation(); // Prevent flip card
       if (diff > 0) {
         previousCard();
       } else {
         nextCard();
       }
     }
-    // If it's just a click (not dragged), let the @click handler flip the card
     
     // Reset
     isDragging.value = false;
@@ -162,6 +163,11 @@
     swipeDirection.value = null;
     touchStartX.value = 0;
     touchEndX.value = 0;
+    
+    // Reset preventClick after a small delay to allow click event to check it
+    setTimeout(() => {
+      preventClick.value = false;
+    }, 10);
   };
 
   const handleMouseLeave = () => {
@@ -171,6 +177,13 @@
     swipeDirection.value = null;
     touchStartX.value = 0;
     touchEndX.value = 0;
+    preventClick.value = false;
+  };
+
+  const handleCardClick = () => {
+    if (!preventClick.value) {
+      flipCard();
+    }
   };
 
   const loadCardSet = () => {
@@ -291,11 +304,11 @@
         <!-- Flashcard -->
         <div
           class="relative w-full max-w-2xl h-96 mb-8 perspective-1000 cursor-pointer select-none"
-          @click="isDragging ? null : flipCard"
+          @click="handleCardClick"
           @touchstart="handleTouchStart"
           @touchmove="handleTouchMove"
           @touchend="handleTouchEnd"
-          @mousedown.prevent="handleMouseDown"
+          @mousedown="handleMouseDown"
           @mousemove="handleMouseMove"
           @mouseup="handleMouseUp"
           @mouseleave="handleMouseLeave"

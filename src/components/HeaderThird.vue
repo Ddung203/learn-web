@@ -6,7 +6,10 @@
 </script>
 
 <template>
-  <header class="w-[100vw] h-[66px]">
+  <header
+    v-once
+    class="w-[100vw] h-[66px]"
+  >
     <div class="fixed top-0 left-0 w-[100%] z-40 bg-white shadow-c">
       <div class="grid grid-cols-3 grid-rows-1 gap-0 py-3 px-7">
         <!--  -->
@@ -24,17 +27,20 @@
         <section class="flex items-center justify-between">
           <!-- LOGO -->
           <div class="logo">
-            <a href="#">
+            <router-link to="/">
               <img
                 class="block max-h-[40px]"
                 src="https://minio.ddung203.id.vn/api/v1/choco-learn/logo.png"
                 alt="Logo"
-            /></a>
+              />
+            </router-link>
           </div>
         </section>
-        
+
         <!-- Right -->
-        <section class="flex items-center justify-end gap-5 md:flex lg:flex-row right">
+        <section
+          class="flex items-center justify-end gap-5 md:flex lg:flex-row right"
+        >
           <LanguageSwitcher />
         </section>
       </div>

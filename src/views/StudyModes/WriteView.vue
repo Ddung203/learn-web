@@ -27,7 +27,7 @@
   const showResults = ref(false);
   const startTime = ref<number>(0);
   const endTime = ref<number>(0);
-  const inputRef = ref<HTMLInputElement | null>(null);
+  const inputRef = ref<any>(null);
 
   const currentQuestion = computed(() => {
     if (questions.value.length === 0) return null;
@@ -110,10 +110,6 @@
   const nextQuestion = () => {
     if (currentQuestionIndex.value < questions.value.length - 1) {
       currentQuestionIndex.value++;
-      // Auto focus on input for next question
-      setTimeout(() => {
-        inputRef.value?.focus();
-      }, 100);
     } else {
       endTime.value = Date.now();
       showResults.value = true;
@@ -132,12 +128,10 @@
   };
 
   const handleKeyPress = (event: KeyboardEvent) => {
-    if (event.key === 'Enter' && currentQuestion.value) {
-      if (!currentQuestion.value.isSubmitted) {
-        submitAnswer();
-      } else {
-        nextQuestion();
-      }
+    // Only handle Enter when typing (not submitted yet)
+    if (event.key === 'Enter' && currentQuestion.value && !currentQuestion.value.isSubmitted) {
+      event.preventDefault();
+      submitAnswer();
     }
   };
 
@@ -163,7 +157,10 @@
   // Auto focus when question changes
   watch(currentQuestionIndex, () => {
     setTimeout(() => {
-      inputRef.value?.focus();
+      const input = inputRef.value?.$el?.querySelector('input') || inputRef.value;
+      if (input && typeof input.focus === 'function') {
+        input.focus();
+      }
     }, 100);
   });
 
@@ -180,9 +177,16 @@
       return;
     }
 
-    if (event.key === 'Escape' && !showResults.value) {
+    // Handle Enter key for submitted questions (continue to next)
+    if (event.key === 'Enter' && currentQuestion.value?.isSubmitted) {
+      event.preventDefault();
+      nextQuestion();
+    } else if (event.key === 'Escape' && !showResults.value) {
       event.preventDefault();
       goBack();
+    } else if (event.key === 'r' || event.key === 'R') {
+      event.preventDefault();
+      restart();
     }
   };
 
@@ -329,79 +333,85 @@
       <div v-else-if="showResults" class="w-full">
         <Card>
           <template #content>
-            <div class="text-center py-8">
-              <i
-                :class="[
-                  'pi text-6xl mb-4',
-                  score.percentage >= 80 ? 'pi-check-circle text-green-500' :
-                  score.percentage >= 60 ? 'pi-exclamation-circle text-yellow-500' :
-                  'pi-times-circle text-red-500',
-                ]"
-              ></i>
-              <h2 class="text-3xl font-bold mb-4">{{ t('studyModes.write.results') }}</h2>
-              <div
-                class="text-6xl font-bold mb-6"
-                :class="{
-                  'text-green-500': score.percentage >= 80,
-                  'text-yellow-500': score.percentage >= 60 && score.percentage < 80,
-                  'text-red-500': score.percentage < 60,
-                }"
-              >
-                {{ score.percentage }}%
-              </div>
-              <p class="text-xl text-gray-600 mb-4">
-                {{ t('studyModes.write.scoreText', { correct: score.correct, total: score.total }) }}
-              </p>
-              <p class="text-sm text-gray-500 mb-8">
-                <i class="pi pi-clock mr-1"></i>
-                {{ t('studyModes.write.timeSpent', { time: timeSpent }) }}
-              </p>
-
-              <!-- Detailed Results -->
-              <div class="text-left space-y-3 mb-8 max-h-96 overflow-y-auto">
-                <div
-                  v-for="(question, index) in questions"
-                  :key="index"
-                  class="p-4 border-2 rounded-lg"
-                  :class="{
-                    'border-green-300 bg-green-50': question.isCorrect,
-                    'border-red-300 bg-red-50': !question.isCorrect,
-                  }"
-                >
-                  <div class="flex items-start gap-3">
-                    <i
-                      :class="[
-                        'pi text-xl mt-1',
-                        question.isCorrect ? 'pi-check-circle text-green-500' : 'pi-times-circle text-red-500',
-                      ]"
-                    ></i>
-                    <div class="flex-1">
-                      <div class="font-semibold mb-1">{{ question.card.terminology }}</div>
-                      <div class="text-sm text-gray-600">
-                        <span class="font-medium">{{ t('studyModes.write.yourAnswer') }}:</span>
-                        {{ question.userAnswer || t('studyModes.write.noAnswer') }}
-                      </div>
-                      <div v-if="!question.isCorrect" class="text-sm text-green-700 mt-1">
-                        <span class="font-medium">{{ t('studyModes.write.correctAnswer') }}:</span>
-                        {{ question.card.define }}
-                      </div>
-                    </div>
+            <div class="text-center py-4">
+              <!-- Score Summary -->
+              <div class="flex items-center justify-center gap-6 mb-4">
+                <i
+                  :class="[
+                    'pi text-4xl',
+                    score.percentage >= 80 ? 'pi-check-circle text-green-500' :
+                    score.percentage >= 60 ? 'pi-exclamation-circle text-yellow-500' :
+                    'pi-times-circle text-red-500',
+                  ]"
+                ></i>
+                <div>
+                  <div
+                    class="text-4xl font-bold"
+                    :class="{
+                      'text-green-500': score.percentage >= 80,
+                      'text-yellow-500': score.percentage >= 60 && score.percentage < 80,
+                      'text-red-500': score.percentage < 60,
+                    }"
+                  >
+                    {{ score.percentage }}%
+                  </div>
+                  <p class="text-sm text-gray-600">
+                    {{ score.correct }}/{{ score.total }} {{ t('studyModes.write.completed') }}
+                  </p>
+                </div>
+                <div class="text-left">
+                  <div class="text-xs text-gray-500">
+                    <i class="pi pi-clock mr-1"></i>{{ timeSpent }}s
                   </div>
                 </div>
               </div>
 
-              <div class="flex gap-3 justify-center">
+              <!-- Detailed Results (Collapsible) -->
+              <details class="text-left mb-4">
+                <summary class="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-700 py-2 px-4 bg-blue-50 rounded">
+                  <i class="pi pi-list mr-2"></i>{{ t('studyModes.write.viewDetails') }}
+                </summary>
+                <div class="space-y-2 mt-3 max-h-64 overflow-y-auto">
+                  <div
+                    v-for="(question, index) in questions"
+                    :key="index"
+                    class="p-3 border rounded text-sm"
+                    :class="{
+                      'border-green-300 bg-green-50': question.isCorrect,
+                      'border-red-300 bg-red-50': !question.isCorrect,
+                    }"
+                  >
+                    <div class="flex items-start gap-2">
+                      <i
+                        :class="[
+                          'pi text-sm mt-0.5',
+                          question.isCorrect ? 'pi-check-circle text-green-500' : 'pi-times-circle text-red-500',
+                        ]"
+                      ></i>
+                      <div class="flex-1 min-w-0">
+                        <div class="font-semibold truncate">{{ question.card.terminology }}</div>
+                        <div class="text-xs text-gray-600 truncate">
+                          {{ question.userAnswer || t('studyModes.write.noAnswer') }}
+                        </div>
+                        <div v-if="!question.isCorrect" class="text-xs text-green-700 truncate">
+                          ✓ {{ question.card.define }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </details>
+
+              <div class="flex gap-2 justify-center flex-wrap">
                 <Button
                   icon="pi pi-refresh"
                   :label="t('studyModes.write.tryAgain')"
-                  size="large"
                   @click="restart"
                 />
                 <Button
                   icon="pi pi-arrow-left"
                   :label="t('common.backToHome')"
                   severity="secondary"
-                  size="large"
                   @click="goBack"
                 />
               </div>

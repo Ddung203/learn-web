@@ -128,6 +128,54 @@
 
   const showAnswerForReview = () => {
     showAnswer.value = true;
+    
+    // If user already selected an option in multiple choice, treat it as submission
+    if (currentQuestionType.value === 'multipleChoice' && selectedOption.value && currentCard.value) {
+      currentCard.value.attempts++;
+      const isCorrect = checkAnswer(selectedOption.value, currentCard.value.card.define);
+      
+      if (isCorrect) {
+        currentCard.value.correctCount++;
+        
+        if (currentCard.value.correctCount >= 2) {
+          currentCard.value.mastered = true;
+          
+          toast.add({
+            severity: 'success',
+            summary: t('common.success'),
+            detail: t('studyModes.learn.toast.mastered'),
+            life: 2000,
+          });
+        }
+      } else {
+        currentCard.value.incorrectCount++;
+        currentCard.value.correctCount = 0;
+      }
+    }
+    
+    // Same for write mode if user typed something
+    if (currentQuestionType.value === 'write' && userAnswer.value.trim() && currentCard.value) {
+      currentCard.value.attempts++;
+      const isCorrect = checkAnswer(userAnswer.value, currentCard.value.card.define);
+      
+      if (isCorrect) {
+        currentCard.value.correctCount++;
+        
+        if (currentCard.value.correctCount >= 2) {
+          currentCard.value.mastered = true;
+          
+          toast.add({
+            severity: 'success',
+            summary: t('common.success'),
+            detail: t('studyModes.learn.toast.mastered'),
+            life: 2000,
+          });
+        }
+      } else {
+        currentCard.value.incorrectCount++;
+        currentCard.value.correctCount = 0;
+      }
+    }
   };
 
   const markAsKnown = () => {
@@ -172,6 +220,24 @@
     nextCard();
   };
 
+  const continueToNext = () => {
+    if (!currentCard.value) return;
+
+    // Handle mastered cards
+    if (currentCard.value.mastered) {
+      masteredCards.value.push(currentCard.value);
+      queue.value.shift();
+    } else {
+      // Move to end of queue
+      const card = queue.value.shift();
+      if (card) {
+        queue.value.push(card);
+      }
+    }
+
+    nextCard();
+  };
+
   const submitAnswer = () => {
     if (!currentCard.value) return;
 
@@ -186,13 +252,6 @@
       
       if (currentCard.value.correctCount >= 2) {
         currentCard.value.mastered = true;
-        showAnswer.value = true;
-        
-        setTimeout(() => {
-          masteredCards.value.push(currentCard.value!);
-          queue.value.shift();
-          nextCard();
-        }, 1500);
         
         toast.add({
           severity: 'success',
@@ -200,30 +259,13 @@
           detail: t('studyModes.learn.toast.mastered'),
           life: 2000,
         });
-      } else {
-        showAnswer.value = true;
-        
-        setTimeout(() => {
-          const card = queue.value.shift();
-          if (card) {
-            queue.value.push(card);
-          }
-          nextCard();
-        }, 1500);
       }
     } else {
       currentCard.value.incorrectCount++;
       currentCard.value.correctCount = 0;
-      showAnswer.value = true;
-      
-      setTimeout(() => {
-        const card = queue.value.shift();
-        if (card) {
-          queue.value.push(card);
-        }
-        nextCard();
-      }, 2000);
     }
+
+    showAnswer.value = true;
   };
 
   const nextCard = () => {
@@ -352,7 +394,11 @@
 
       if (event.key === 'Enter') {
         event.preventDefault();
-        if (!showAnswer.value && (userAnswer.value.trim() || selectedOption.value)) {
+        if (showAnswer.value && (userAnswer.value.trim() || selectedOption.value)) {
+          // If answer is showing and user answered, continue to next
+          continueToNext();
+        } else if (!showAnswer.value && (userAnswer.value.trim() || selectedOption.value)) {
+          // If no answer showing yet, submit
           submitAnswer();
         }
       } else if (event.key === ' ' && !showAnswer.value) {
@@ -672,6 +718,17 @@
                     />
                   </div>
                 </div>
+
+                <!-- Continue Button (if answered) -->
+                <div v-if="userAnswer || selectedOption" class="mt-4">
+                  <Button
+                    icon="pi pi-arrow-right"
+                    :label="t('studyModes.learn.continue')"
+                    size="large"
+                    @click="continueToNext"
+                    class="w-full max-w-md mx-auto"
+                  />
+                </div>
               </div>
 
               <div class="text-xs text-gray-400 mt-4">
@@ -687,52 +744,45 @@
       <div v-else-if="sessionComplete" class="w-full">
         <Card>
           <template #content>
-            <div class="text-center py-8">
-              <i class="pi pi-trophy text-6xl text-yellow-500 mb-4"></i>
-              <h2 class="text-3xl font-bold mb-4">{{ t('studyModes.learn.congratulations') }}</h2>
-              <p class="text-xl text-gray-600 mb-8">
-                {{ t('studyModes.learn.completedMessage') }}
-              </p>
-
-              <!-- Statistics -->
-              <div class="grid grid-cols-2 gap-4 mb-8 max-w-md mx-auto">
-                <div class="p-4 bg-green-50 border-2 border-green-500 rounded-lg">
-                  <div class="text-3xl font-bold text-green-700 mb-1">
-                    {{ masteredCards.length }}
-                  </div>
-                  <div class="text-sm text-green-600">
-                    {{ t('studyModes.learn.cardsMastered') }}
-                  </div>
-                </div>
-                <div class="p-4 bg-blue-50 border-2 border-blue-500 rounded-lg">
-                  <div class="text-3xl font-bold text-blue-700 mb-1">
-                    {{ masteredCards.reduce((sum, c) => sum + c.correctCount, 0) }}
-                  </div>
-                  <div class="text-sm text-blue-600">
-                    {{ t('studyModes.learn.totalCorrect') }}
-                  </div>
+            <div class="text-center py-4">
+              <div class="flex items-center justify-center gap-4 mb-4">
+                <i class="pi pi-trophy text-4xl text-yellow-500"></i>
+                <div class="text-left">
+                  <h2 class="text-2xl font-bold">{{ t('studyModes.learn.congratulations') }}</h2>
+                  <p class="text-sm text-gray-600">
+                    {{ t('studyModes.learn.completedMessage') }}
+                  </p>
                 </div>
               </div>
 
-              <div class="flex gap-3 justify-center">
+              <!-- Statistics -->
+              <div class="flex gap-3 mb-4 justify-center">
+                <div class="px-4 py-2 bg-green-50 border border-green-500 rounded-lg">
+                  <span class="text-2xl font-bold text-green-700">{{ masteredCards.length }}</span>
+                  <span class="text-xs text-green-600 ml-2">{{ t('studyModes.learn.cardsMastered') }}</span>
+                </div>
+                <div class="px-4 py-2 bg-blue-50 border border-blue-500 rounded-lg">
+                  <span class="text-2xl font-bold text-blue-700">{{ masteredCards.reduce((sum, c) => sum + c.correctCount, 0) }}</span>
+                  <span class="text-xs text-blue-600 ml-2">{{ t('studyModes.learn.totalCorrect') }}</span>
+                </div>
+              </div>
+
+              <div class="flex gap-2 justify-center flex-wrap">
                 <Button
                   icon="pi pi-refresh"
                   :label="t('studyModes.learn.practiceAgainSameMode')"
-                  size="large"
                   @click="restartSameMode"
                 />
                 <Button
                   icon="pi pi-cog"
                   :label="t('studyModes.learn.changeModeAndRestart')"
                   severity="secondary"
-                  size="large"
                   @click="restart"
                 />
                 <Button
                   icon="pi pi-arrow-left"
                   :label="t('common.backToHome')"
                   severity="secondary"
-                  size="large"
                   @click="goBack"
                 />
               </div>

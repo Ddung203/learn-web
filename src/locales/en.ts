@@ -161,6 +161,7 @@ export default {
       noQuestionsDescription: 'Need at least 2 cards to start testing.',
       answered: 'answered',
       timeSpent: 'Time: {time}s',
+      viewDetails: 'View Details',
     },
     write: {
       title: 'Write',
@@ -185,6 +186,7 @@ export default {
       completed: 'completed',
       timeSpent: 'Time: {time}s',
       pressEnterToContinue: 'Press Enter to continue',
+      viewDetails: 'View Details',
     },
     learn: {
       title: 'Learn',

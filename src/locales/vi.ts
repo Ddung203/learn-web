@@ -163,6 +163,7 @@ export default {
       noQuestionsDescription: 'Cần ít nhất 2 thẻ để bắt đầu kiểm tra.',
       answered: 'đã trả lời',
       timeSpent: 'Thời gian: {time}s',
+      viewDetails: 'Xem chi tiết',
     },
     write: {
       title: 'Write',
@@ -187,6 +188,7 @@ export default {
       completed: 'đã hoàn thành',
       timeSpent: 'Thời gian: {time}s',
       pressEnterToContinue: 'Nhấn Enter để tiếp tục',
+      viewDetails: 'Xem chi tiết',
     },
     learn: {
       title: 'Learn',
