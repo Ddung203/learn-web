@@ -17,6 +17,7 @@ export default {
     next: 'Next',
     previous: 'Previous',
     flip: 'Flip Card',
+    navigate: 'Navigate',
   },
   studyModule: {
     title: 'Create a new set',
@@ -139,6 +140,8 @@ export default {
       noCards: 'No cards available',
       noCardsDescription: 'This card set does not have any cards to study.',
       clickToFlip: 'Click to flip',
+      swipeInstruction: 'Swipe left/right to navigate cards',
+      toFlip: 'to flip',
     },
     test: {
       title: 'Test',

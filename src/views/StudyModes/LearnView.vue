@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import type { ICardSet, ICardSetCard } from '~/interfaces';
@@ -303,8 +303,89 @@
     cardSet.value = foundCardSet;
   };
 
+  // Keyboard shortcuts
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // Ignore if user is typing in an input
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      if (event.key === 'Enter' && currentQuestionType.value === 'write' && !showAnswer.value) {
+        submitAnswer();
+      }
+      return;
+    }
+
+    // Mode selection screen
+    if (!learningMode.value && !sessionComplete.value) {
+      if (event.key === '1') {
+        event.preventDefault();
+        selectLearningMode('write');
+      } else if (event.key === '2') {
+        event.preventDefault();
+        selectLearningMode('multipleChoice');
+      } else if (event.key === '3') {
+        event.preventDefault();
+        selectLearningMode('both');
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        goBack();
+      }
+      return;
+    }
+
+    // During learning session
+    if (learningMode.value && !sessionComplete.value && currentCard.value) {
+      if (currentQuestionType.value === 'multipleChoice' && !showAnswer.value) {
+        const optionMap: { [key: string]: number } = {
+          '1': 0, 'a': 0, 'A': 0,
+          '2': 1, 'b': 1, 'B': 1,
+          '3': 2, 'c': 2, 'C': 2,
+          '4': 3, 'd': 3, 'D': 3,
+        };
+        
+        if (event.key in optionMap) {
+          event.preventDefault();
+          const index = optionMap[event.key];
+          if (index < multipleChoiceOptions.value.length) {
+            selectMultipleChoiceOption(multipleChoiceOptions.value[index]);
+          }
+        }
+      }
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (!showAnswer.value && (userAnswer.value.trim() || selectedOption.value)) {
+          submitAnswer();
+        }
+      } else if (event.key === ' ' && !showAnswer.value) {
+        event.preventDefault();
+        showAnswerForReview();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        goBack();
+      }
+    }
+
+    // Session complete
+    if (sessionComplete.value) {
+      if (event.key === 'r' || event.key === 'R') {
+        event.preventDefault();
+        restartSameMode();
+      } else if (event.key === 'c' || event.key === 'C') {
+        event.preventDefault();
+        restart();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        goBack();
+      }
+    }
+  };
+
   onMounted(() => {
     loadCardSet();
+    window.addEventListener('keydown', handleKeyDown);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown);
   });
 </script>
 

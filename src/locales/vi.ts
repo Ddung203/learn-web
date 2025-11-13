@@ -17,6 +17,7 @@ export default {
     next: 'Tiếp theo',
     previous: 'Quay lại',
     flip: 'Lật thẻ',
+    navigate: 'Di chuyển',
   },
   studyModule: {
     title: 'Tạo một học phần mới',
@@ -141,6 +142,8 @@ export default {
       noCards: 'Không có thẻ nào',
       noCardsDescription: 'Bộ thẻ này chưa có thẻ nào để học.',
       clickToFlip: 'Click để lật thẻ',
+      swipeInstruction: 'Vuốt sang trái/phải để chuyển thẻ',
+      toFlip: 'Lật thẻ',
     },
     test: {
       title: 'Test',

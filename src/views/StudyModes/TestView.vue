@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import type { ICardSet, ICardSetCard } from '~/interfaces';
@@ -163,8 +163,54 @@
     generateQuestions();
   };
 
+  // Keyboard shortcuts
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (!currentQuestion.value || showResults.value) {
+      if (showResults.value) {
+        if (event.key === 'r' || event.key === 'R') {
+          event.preventDefault();
+          restart();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          goBack();
+        }
+      }
+      return;
+    }
+
+    const optionMap: { [key: string]: number } = {
+      '1': 0, 'a': 0, 'A': 0,
+      '2': 1, 'b': 1, 'B': 1,
+      '3': 2, 'c': 2, 'C': 2,
+      '4': 3, 'd': 3, 'D': 3,
+    };
+
+    if (event.key in optionMap && !isSubmitted.value) {
+      event.preventDefault();
+      const index = optionMap[event.key];
+      if (index < currentQuestion.value.options.length) {
+        selectAnswer(currentQuestion.value.options[index]);
+      }
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (!isSubmitted.value) {
+        submitAnswer();
+      } else {
+        nextQuestion();
+      }
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      goBack();
+    }
+  };
+
   onMounted(() => {
     loadCardSet();
+    window.addEventListener('keydown', handleKeyDown);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown);
   });
 </script>
 

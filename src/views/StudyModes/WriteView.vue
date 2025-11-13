@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted, watch } from 'vue';
+  import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import type { ICardSet, ICardSetCard } from '~/interfaces';
@@ -167,8 +167,32 @@
     }, 100);
   });
 
+  // Keyboard shortcuts
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (showResults.value) {
+      if (event.key === 'r' || event.key === 'R') {
+        event.preventDefault();
+        restart();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        goBack();
+      }
+      return;
+    }
+
+    if (event.key === 'Escape' && !showResults.value) {
+      event.preventDefault();
+      goBack();
+    }
+  };
+
   onMounted(() => {
     loadCardSet();
+    window.addEventListener('keydown', handleKeyDown);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown);
   });
 </script>
 

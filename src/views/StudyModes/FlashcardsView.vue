@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import type { ICardSet } from '~/interfaces';
@@ -17,6 +17,13 @@
   const currentCardIndex = ref(0);
   const isFlipped = ref(false);
   const showingTerm = ref(true);
+  
+  // Swipe state
+  const touchStartX = ref(0);
+  const touchEndX = ref(0);
+  const isDragging = ref(false);
+  const dragOffset = ref(0);
+  const swipeDirection = ref<'left' | 'right' | null>(null);
 
   const currentCard = computed(() => {
     if (!cardSet.value?.cards || cardSet.value.cards.length === 0) return null;
@@ -64,6 +71,108 @@
     router.push(`/card-sets/${route.params.id}`);
   };
 
+  // Touch/Swipe handlers
+  const handleTouchStart = (e: TouchEvent) => {
+    touchStartX.value = e.touches[0].clientX;
+    isDragging.value = true;
+    swipeDirection.value = null;
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isDragging.value) return;
+    
+    touchEndX.value = e.touches[0].clientX;
+    dragOffset.value = touchEndX.value - touchStartX.value;
+    
+    // Determine swipe direction for visual feedback
+    if (Math.abs(dragOffset.value) > 20) {
+      swipeDirection.value = dragOffset.value > 0 ? 'right' : 'left';
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging.value) return;
+    
+    const swipeThreshold = 100; // minimum distance for a swipe
+    const diff = touchEndX.value - touchStartX.value;
+    
+    if (Math.abs(diff) > swipeThreshold) {
+      if (diff > 0) {
+        // Swipe right - previous card
+        previousCard();
+      } else {
+        // Swipe left - next card
+        nextCard();
+      }
+    }
+    
+    // Reset
+    isDragging.value = false;
+    dragOffset.value = 0;
+    swipeDirection.value = null;
+    touchStartX.value = 0;
+    touchEndX.value = 0;
+  };
+
+  // Mouse handlers for desktop
+  const handleMouseDown = (e: MouseEvent) => {
+    touchStartX.value = e.clientX;
+    touchEndX.value = e.clientX;
+    isDragging.value = false; // Start as false, will become true only if moved
+    swipeDirection.value = null;
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (touchStartX.value === 0) return;
+    
+    touchEndX.value = e.clientX;
+    const diff = touchEndX.value - touchStartX.value;
+    
+    // Only consider it dragging if moved more than 5px
+    if (Math.abs(diff) > 5) {
+      isDragging.value = true;
+      dragOffset.value = diff;
+      
+      if (Math.abs(diff) > 20) {
+        swipeDirection.value = diff > 0 ? 'right' : 'left';
+      }
+    }
+  };
+
+  const handleMouseUp = (e: MouseEvent) => {
+    if (touchStartX.value === 0) return;
+    
+    const swipeThreshold = 100;
+    const diff = touchEndX.value - touchStartX.value;
+    
+    // If dragged more than threshold, change card
+    if (isDragging.value && Math.abs(diff) > swipeThreshold) {
+      e.stopPropagation(); // Prevent flip card
+      if (diff > 0) {
+        previousCard();
+      } else {
+        nextCard();
+      }
+    }
+    // If it's just a click (not dragged), let the @click handler flip the card
+    
+    // Reset
+    isDragging.value = false;
+    dragOffset.value = 0;
+    swipeDirection.value = null;
+    touchStartX.value = 0;
+    touchEndX.value = 0;
+  };
+
+  const handleMouseLeave = () => {
+    // Reset everything when mouse leaves
+    isDragging.value = false;
+    dragOffset.value = 0;
+    swipeDirection.value = null;
+    touchStartX.value = 0;
+    touchEndX.value = 0;
+  };
+
   const loadCardSet = () => {
     const cardSetId = route.params.id as string;
     const foundCardSet = cardSetStore.getCardSetById(cardSetId);
@@ -82,8 +191,46 @@
     cardSet.value = foundCardSet;
   };
 
+  // Keyboard shortcuts
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // Ignore if user is typing in an input
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    switch (event.key) {
+      case ' ':
+      case 'Enter':
+        event.preventDefault();
+        flipCard();
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        previousCard();
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        nextCard();
+        break;
+      case 'r':
+      case 'R':
+        event.preventDefault();
+        restart();
+        break;
+      case 'Escape':
+        event.preventDefault();
+        goBack();
+        break;
+    }
+  };
+
   onMounted(() => {
     loadCardSet();
+    window.addEventListener('keydown', handleKeyDown);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown);
   });
 </script>
 
@@ -128,16 +275,64 @@
           </div>
         </div>
 
+        <!-- Instructions -->
+        <div class="flex flex-col items-center gap-2 mb-3">
+          <div class="text-sm text-gray-500 text-center">
+            <i class="pi pi-arrows-h mr-2"></i>
+            {{ t('studyModes.flashcards.swipeInstruction') }}
+          </div>
+          <div class="flex gap-4 text-xs text-gray-400">
+            <span><kbd class="px-2 py-1 bg-gray-100 rounded border">Space</kbd> {{ t('studyModes.flashcards.toFlip') }}</span>
+            <span><kbd class="px-2 py-1 bg-gray-100 rounded border">←</kbd> <kbd class="px-2 py-1 bg-gray-100 rounded border">→</kbd> {{ t('common.navigate') }}</span>
+            <span><kbd class="px-2 py-1 bg-gray-100 rounded border">R</kbd> {{ t('studyModes.flashcards.restart') }}</span>
+          </div>
+        </div>
+
         <!-- Flashcard -->
         <div
-          class="relative w-full max-w-2xl h-96 mb-8 perspective-1000 cursor-pointer"
-          @click="flipCard"
+          class="relative w-full max-w-2xl h-96 mb-8 perspective-1000 cursor-pointer select-none"
+          @click="isDragging ? null : flipCard"
+          @touchstart="handleTouchStart"
+          @touchmove="handleTouchMove"
+          @touchend="handleTouchEnd"
+          @mousedown.prevent="handleMouseDown"
+          @mousemove="handleMouseMove"
+          @mouseup="handleMouseUp"
+          @mouseleave="handleMouseLeave"
         >
+          <!-- Swipe Indicators -->
+          <div
+            v-if="isDragging && swipeDirection === 'left'"
+            class="absolute right-4 top-1/2 -translate-y-1/2 z-10 opacity-70"
+          >
+            <div class="flex flex-col items-center text-blue-500">
+              <i class="pi pi-arrow-right text-4xl mb-2"></i>
+              <span class="text-sm font-semibold">{{ t('common.next') }}</span>
+            </div>
+          </div>
+          <div
+            v-if="isDragging && swipeDirection === 'right'"
+            class="absolute left-4 top-1/2 -translate-y-1/2 z-10 opacity-70"
+          >
+            <div class="flex flex-col items-center text-blue-500">
+              <i class="pi pi-arrow-left text-4xl mb-2"></i>
+              <span class="text-sm font-semibold">{{ t('common.previous') }}</span>
+            </div>
+          </div>
+
           <div
             :class="[
-              'absolute inset-0 transition-transform duration-500 transform-style-3d',
+              'absolute inset-0 transform-style-3d',
+              isDragging ? '' : 'transition-transform duration-500',
               isFlipped ? 'rotate-y-180' : '',
             ]"
+            :style="{
+              transform: isDragging && !isFlipped
+                ? `translateX(${dragOffset}px) rotateY(${dragOffset * 0.05}deg)`
+                : isFlipped
+                ? 'rotateY(180deg)'
+                : '',
+            }"
           >
             <!-- Front Side -->
             <div
@@ -262,5 +457,12 @@
 
   .rotate-y-180 {
     transform: rotateY(180deg);
+  }
+
+  .select-none {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 </style>
