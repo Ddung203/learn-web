@@ -1,6 +1,9 @@
 <script setup lang="ts">
   import appRouter from '~/routes';
+  import { useLocale } from '~/composables/useLocale';
 
+  const { t } = useLocale();
+  
   const props = defineProps({
     urlPath: {
       type: String,
@@ -23,7 +26,7 @@
         class="pi pi-arrow-left"
         style="font-size: 1rem"
       ></i>
-      <span> Quay lại</span>
+      <span> {{ t('common.backToHome') }}</span>
     </Button>
   </div>
 </template>

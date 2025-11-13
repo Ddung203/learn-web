@@ -7,15 +7,15 @@ export const createMenuItems = (
 ): MenuConfig => {
   // Base common items
   const homeItem: MenuItem = {
-    label: 'IT SUPPORTER',
+    label: 'ChocoLearn',
     icon: 'pi pi-home',
     command: () => navigateHandle('/introduction'),
   };
 
-  const verifyOtpItem: MenuItem = {
-    label: 'Xác thực OTP',
+  const studyModuleItem: MenuItem = {
+    label: 'Create new set',
     icon: 'pi pi-verified',
-    command: () => navigateHandle('/verify-otp'),
+    command: () => navigateHandle('/study-module'),
   };
 
   const profileItem: MenuItem = {
@@ -25,198 +25,28 @@ export const createMenuItems = (
   };
 
   const logoutItem: MenuItem = {
-    label: 'Đăng xuất',
+    label: 'Sign Out',
     icon: 'pi pi-sign-out',
     command: logout,
   };
 
-  const questionManagementItems: MenuItem[] = [
-    {
-      label: 'Danh sách câu hỏi',
-      icon: 'pi pi-list',
-      command: () => navigateHandle('/questions'),
-    },
-  ];
-
-  const accountManagementItems: MenuItem[] = [
-    {
-      label: 'Sinh viên',
-      icon: 'pi pi-user',
-      command: () => navigateHandle('/students'),
-    },
-
-    {
-      label: 'Authenticator',
-      icon: 'pi pi-qrcode',
-      command: () => navigateHandle('/authenticator'),
-    },
-  ];
-
-  const postInterviewItems: MenuItem[] = [
-    {
-      label: 'Duyệt CTV',
-      icon: 'pi pi-envelope',
-      command: () => navigateHandle('/review'),
-    },
-  ];
-
   return {
-    [ROLE.ROOT]: [
-      homeItem,
-      // verifyOtpItem,
-      {
-        label: 'Bảng xếp hạng',
-        icon: 'pi pi-chart-bar',
-        command: () => navigateHandle('/leaderboard'),
-      },
-      {
-        label: 'Tài khoản',
-        icon: 'pi pi-users',
-        items: [
-          ...accountManagementItems,
-          // {
-          //   label: 'ROOT Management',
-          //   icon: 'pi pi-crown',
-          //   command: () => navigateHandle('/root-management'),
-          // },
-        ],
-      },
-      {
-        label: 'Câu hỏi',
-        icon: 'pi pi-question-circle',
-        items: questionManagementItems,
-      },
-      {
-        label: 'Phỏng vấn',
-        icon: 'pi pi-file-edit',
-        command: () => navigateHandle('/interview'),
-      },
-      {
-        label: 'Sau phỏng vấn',
-        icon: 'pi pi-hourglass',
-        items: postInterviewItems,
-      },
-      {
-        label: 'Quản trị hệ thống',
-        icon: 'pi pi-cog',
-        items: [
-          {
-            label: 'Danh sách thống kê',
-            icon: 'pi pi-sort',
-            command: () => navigateHandle('/stat'),
-          },
-          // {
-          //   label: 'Cấu hình hệ thống',
-          //   icon: 'pi pi-wrench',
-          //   command: () => navigateHandle('/system-config'),
-          // },
-          // {
-          //   label: 'Logs hệ thống',
-          //   icon: 'pi pi-file-o',
-          //   command: () => navigateHandle('/system-logs'),
-          // },
-        ],
-      },
-      profileItem,
-      logoutItem,
-    ],
+    [ROLE.ROOT]: [homeItem, profileItem, logoutItem],
 
     [ROLE.OTHER]: [
       homeItem,
-      verifyOtpItem,
+      studyModuleItem,
       {
-        label: 'Đăng ký CTV',
-        icon: 'pi pi-send',
-        command: () => navigateHandle('/previous-registration'),
-      },
-      {
-        label: 'Tra cứu kết quả',
-        icon: 'pi pi-search',
-        command: () => navigateHandle('/find-result'),
-      },
-      {
-        label: 'Đăng nhập',
+        label: 'Sign In',
         icon: 'pi pi-pencil',
         command: () => navigateHandle('/login'),
       },
     ],
 
-    [ROLE.USER]: [
-      homeItem,
-      {
-        label: 'Bài kiểm tra',
-        icon: 'pi pi-pencil',
-        command: () => navigateHandle('/start-test'),
-      },
-      {
-        label: 'Tra cứu kết quả',
-        icon: 'pi pi-search',
-        command: () => navigateHandle('/find-result'),
-      },
-      profileItem,
-      logoutItem,
-    ],
+    [ROLE.USER]: [homeItem, profileItem, logoutItem],
 
-    [ROLE.INTERVIEWER]: [
-      homeItem,
-      {
-        label: 'Bảng xếp hạng',
-        icon: 'pi pi-chart-bar',
-        command: () => navigateHandle('/leaderboard'),
-      },
-      {
-        label: 'Tài khoản',
-        icon: 'pi pi-users',
-        items: accountManagementItems,
-      },
-      {
-        label: 'Câu hỏi',
-        icon: 'pi pi-question-circle',
-        items: questionManagementItems,
-      },
-      {
-        label: 'Phỏng vấn',
-        icon: 'pi pi-file-edit',
-        command: () => navigateHandle('/interview'),
-      },
-      profileItem,
-      logoutItem,
-    ],
+    [ROLE.INTERVIEWER]: [homeItem, profileItem, logoutItem],
 
-    [ROLE.ADMIN]: [
-      homeItem,
-      {
-        label: 'Bảng xếp hạng',
-        icon: 'pi pi-chart-bar',
-        command: () => navigateHandle('/leaderboard'),
-      },
-      {
-        label: 'Tài khoản',
-        icon: 'pi pi-users',
-        items: accountManagementItems,
-      },
-      {
-        label: 'Câu hỏi',
-        icon: 'pi pi-question-circle',
-        items: questionManagementItems,
-      },
-      {
-        label: 'Phỏng vấn',
-        icon: 'pi pi-file-edit',
-        command: () => navigateHandle('/interview'),
-      },
-      {
-        label: 'Sau phỏng vấn',
-        icon: 'pi pi-hourglass',
-        items: postInterviewItems,
-      },
-      {
-        label: 'Danh sách thống kê',
-        icon: 'pi pi-sort',
-        command: () => navigateHandle('/stat'),
-      },
-      profileItem,
-      logoutItem,
-    ],
+    [ROLE.ADMIN]: [homeItem, profileItem, logoutItem],
   };
 };

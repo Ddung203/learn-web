@@ -31,6 +31,8 @@ import ConfirmDialog from 'primevue/confirmdialog';
 import InputNumber from 'primevue/inputnumber';
 import RadioButton from 'primevue/radiobutton';
 import Image from 'primevue/image';
+import InputGroup from 'primevue/inputgroup';
+import InputGroupAddon from 'primevue/inputgroupaddon';
 
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
@@ -72,4 +74,6 @@ export function importPrimeVueComponents(app: any) {
   app.component('InputNumber', InputNumber);
   app.component('RadioButton', RadioButton);
   app.component('Image', Image);
+  app.component('InputGroup', InputGroup);
+  app.component('InputGroupAddon', InputGroupAddon);
 }

@@ -42,7 +42,7 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #f59e0b;
+    background: #10b981;
     color: white;
     border: none;
     padding: 10px 20px;

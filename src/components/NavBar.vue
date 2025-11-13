@@ -6,10 +6,13 @@
   import { useAuthStore, useUIStore } from '~/stores';
   import type { MenuItem } from '~/interfaces/route.interface';
 
+  import { useLocale } from '~/composables/useLocale';
+
+  const { t } = useLocale();
   const uiStore = useUIStore();
   const authStore = useAuthStore();
 
-  const header = ref<string>('Welcome to IT Supporter');
+  const header = ref<string>('');
 
   const navigateHandle = (path: string): void => {
     uiStore.visibleMenu = false;
@@ -26,8 +29,8 @@
 
   const items = computed((): MenuItem[] => {
     header.value = authStore.getIsLoggedIn
-      ? `Welcome, ${authStore.getStudentName}`
-      : 'Welcome to IT Supporter';
+      ? t('navbar.welcomeUser', { name: authStore.getStudentName })
+      : t('navbar.welcome');
 
     const userRole = authStore.getRole;
 

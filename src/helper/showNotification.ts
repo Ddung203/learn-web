@@ -32,7 +32,7 @@ export const notifyError = (toast: any, detail: string, life = 3000) => {
   showNotification(toast, {
     severity: 'error',
     summary: 'Thông báo lỗi',
-    detail,
+    detail: detail || 'Đã có lỗi xảy ra, vui lòng thử lại!',
     life,
   });
 };
