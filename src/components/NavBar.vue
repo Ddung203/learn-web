@@ -12,6 +12,7 @@
   const authStore = useAuthStore();
 
   const header = ref<string>('');
+  const isAuthenticated = computed(() => authStore.isAuthenticated);
 
   const navigateHandle = (path: string): void => {
     uiStore.visibleMenu = false;
@@ -25,11 +26,13 @@
   };
 
   const items = computed((): MenuItem[] => {
-    header.value = authStore.isAuthenticated()
-      ? t('navbar.welcomeUser', { name: authStore.user?.full_name || authStore.user?.username })
+    header.value = isAuthenticated.value
+      ? t('navbar.welcomeUser', {
+          name: authStore.user?.full_name || authStore.user?.username,
+        })
       : t('navbar.welcome');
 
-    return createMenuItems(navigateHandle, logout, authStore.isAuthenticated());
+    return createMenuItems(navigateHandle, logout, isAuthenticated.value);
   });
 </script>
 

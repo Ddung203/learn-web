@@ -1,11 +1,11 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue';
-  import Divider from 'primevue/divider';
   import { useToast } from 'primevue/usetoast';
+  import { computed, onMounted, ref } from 'vue';
 
-  import { useAuthStore } from '~/stores';
-  import { useLocale } from '~/composables/useLocale';
+  import { watch } from 'vue';
   import HeaderThird from '~/components/HeaderThird.vue';
+  import { useLocale } from '~/composables/useLocale';
+  import { useAuthStore } from '~/stores';
 
   const { t } = useLocale();
   const authStore = useAuthStore();
@@ -78,11 +78,19 @@
   };
 
   onMounted(() => {
-    // Fetch fresh profile data
-    if (authStore.isAuthenticated()) {
+    if (authStore.isAuthenticated) {
       authStore.fetchProfile();
     }
   });
+
+  watch(
+    () => authStore.isAuthenticated,
+    (loggedIn) => {
+      if (loggedIn) {
+        authStore.fetchProfile();
+      }
+    }
+  );
 </script>
 
 <template>

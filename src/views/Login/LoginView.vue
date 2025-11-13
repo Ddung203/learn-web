@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import HeaderThird from '~/components/HeaderThird.vue';
@@ -11,9 +11,9 @@
   const authStore = useAuthStore();
   const { t } = useLocale();
 
-  const email = ref('duongvandung2k3@gmail.com');
-  const fullName = ref('Dương Dũng');
-  const password = ref('Vdung10001@');
+  const email = ref('');
+  const fullName = ref('');
+  const password = ref('');
   const loading = ref(false);
   const showPassword = ref(false);
 
@@ -22,11 +22,19 @@
   };
 
   onMounted(() => {
-    // Redirect if already logged in
-    if (authStore.isAuthenticated()) {
+    if (authStore.isAuthenticated) {
       router.push('/card-sets');
     }
   });
+
+  watch(
+    () => authStore.isAuthenticated,
+    (value) => {
+      if (value) {
+        router.push('/card-sets');
+      }
+    }
+  );
 
   const handleLoginOrRegister = async () => {
     if (!email.value || !password.value) {
@@ -47,7 +55,7 @@
         email: email.value,
         password: password.value,
       };
-      
+
       // Add full_name if provided
       if (fullName.value && fullName.value.trim()) {
         payload.full_name = fullName.value.trim();

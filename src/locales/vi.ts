@@ -126,7 +126,7 @@ export default {
   introduction: {
     title: 'Sẵn sàng bắt đầu học tập với ChocoLearn?',
     subtitle: 'Tạo một bộ học để bắt đầu!',
-    createSet: 'Tạo bộ học',
+    createSet: 'Tạo bộ thẻ mới',
     viewCardSets: 'Xem bộ thẻ',
     goToProfile: 'Đi đến trang cá nhân',
   },

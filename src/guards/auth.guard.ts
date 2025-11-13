@@ -8,15 +8,12 @@ export const authGuard = async (
 ) => {
   const authStore = useAuthStore();
 
-  // Check if route requires authentication
   const requiresAuth = to.meta.requiredAuth as boolean;
 
-  if (requiresAuth && !authStore.isAuthenticated()) {
-    // Redirect to login if not authenticated
+  if (requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'login', query: { redirect: to.fullPath } });
     return;
   }
 
-  // Allow navigation
   next();
 };
