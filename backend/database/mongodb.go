@@ -61,5 +61,70 @@ func CreateIndexes(db *mongo.Database) error {
 		return err
 	}
 
+	// StudySessions collection indexes
+	studySessionsCollection := db.Collection("study_sessions")
+	_, err = studySessionsCollection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "user_id", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "cardset_id", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "created_at", Value: -1}},
+		},
+		{
+			Keys: bson.D{{Key: "mode", Value: 1}},
+		},
+		{
+			// Compound index for efficient queries by user and date
+			Keys: bson.D{
+				{Key: "user_id", Value: 1},
+				{Key: "created_at", Value: -1},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// UserStatistics collection indexes
+	userStatisticsCollection := db.Collection("user_statistics")
+	_, err = userStatisticsCollection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "user_id", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// CardMastery collection indexes
+	cardMasteryCollection := db.Collection("card_mastery")
+	_, err = cardMasteryCollection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "user_id", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "cardset_id", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "mastery_level", Value: 1}},
+		},
+		{
+			// Compound unique index to ensure one mastery record per card per user
+			Keys: bson.D{
+				{Key: "card_id", Value: 1},
+				{Key: "user_id", Value: 1},
+				{Key: "cardset_id", Value: 1},
+			},
+			Options: options.Index().SetUnique(true),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

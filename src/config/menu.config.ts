@@ -18,6 +18,12 @@ export const createMenuItems = (
     command: () => navigateHandle('/card-sets'),
   };
 
+  const statisticsItem: MenuItem = {
+    label: 'Statistics',
+    icon: 'pi pi-chart-line',
+    command: () => navigateHandle('/statistics'),
+  };
+
   const studyModuleItem: MenuItem = {
     label: 'Create New Set',
     icon: 'pi pi-plus-circle',
@@ -44,7 +50,14 @@ export const createMenuItems = (
 
   // Return menu based on authentication status
   if (isAuthenticated) {
-    return [homeItem, cardSetsItem, studyModuleItem, profileItem, logoutItem];
+    return [
+      homeItem,
+      cardSetsItem,
+      statisticsItem,
+      studyModuleItem,
+      profileItem,
+      logoutItem,
+    ];
   }
 
   return [homeItem, loginItem];

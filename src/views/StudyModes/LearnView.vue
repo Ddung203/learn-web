@@ -1,11 +1,12 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted, onUnmounted } from 'vue';
+  import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import type { ICardSet, ICardSetCard } from '~/interfaces';
-  import { useCardSetStore } from '~/stores';
+  import { useCardSetStore, useStatisticsStore } from '~/stores';
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
+  import type { ICreateSessionRequest } from '~/interfaces/statistics.interface';
 
   type LearningMode = 'write' | 'multipleChoice' | 'both';
   type QuestionType = 'write' | 'multipleChoice';
@@ -23,6 +24,7 @@
   const toast = useToast();
   const { t } = useLocale();
   const cardSetStore = useCardSetStore();
+  const statisticsStore = useStatisticsStore();
 
   const cardSet = ref<ICardSet | null>(null);
   const queue = ref<LearnCard[]>([]);
@@ -35,6 +37,10 @@
   const learningMode = ref<LearningMode | null>(null);
   const currentQuestionType = ref<QuestionType>('write');
   const multipleChoiceOptions = ref<string[]>([]);
+
+  // Statistics tracking
+  const startTime = ref<number>(0);
+  const sessionRecorded = ref(false);
 
   const progress = computed(() => {
     const total = queue.value.length + masteredCards.value.length;
@@ -58,7 +64,7 @@
     return normalizeString(userAnswer) === normalizeString(correctAnswer);
   };
 
-  const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffleArray = <T>(array: T[]): T[] => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -69,6 +75,7 @@
 
   const selectLearningMode = (mode: LearningMode) => {
     learningMode.value = mode;
+    startTime.value = Date.now(); // Start tracking time when mode is selected
     initializeLearning();
   };
 
@@ -85,12 +92,17 @@
       return;
     }
 
-    const otherCards = cardSet.value.cards.filter(c => c.define !== correctAnswer);
+    const otherCards = cardSet.value.cards.filter(
+      (c) => c.define !== correctAnswer
+    );
     const wrongOptions = shuffleArray(otherCards)
       .slice(0, 3)
-      .map(c => c.define);
+      .map((c) => c.define);
 
-    multipleChoiceOptions.value = shuffleArray([correctAnswer, ...wrongOptions]);
+    multipleChoiceOptions.value = shuffleArray([
+      correctAnswer,
+      ...wrongOptions,
+    ]);
   };
 
   const initializeLearning = () => {
@@ -98,16 +110,16 @@
       queue.value = [];
       return;
     }
-    
+
     const shuffled = shuffleArray(cardSet.value.cards);
-    queue.value = shuffled.map(card => ({
+    queue.value = shuffled.map((card) => ({
       card,
       correctCount: 0,
       incorrectCount: 0,
       mastered: false,
       attempts: 0,
     }));
-    
+
     masteredCards.value = [];
     currentCard.value = queue.value[0];
     prepareQuestion();
@@ -115,7 +127,7 @@
 
   const prepareQuestion = () => {
     if (!currentCard.value) return;
-    
+
     currentQuestionType.value = determineQuestionType();
     userAnswer.value = '';
     selectedOption.value = '';
@@ -128,18 +140,25 @@
 
   const showAnswerForReview = () => {
     showAnswer.value = true;
-    
+
     // If user already selected an option in multiple choice, treat it as submission
-    if (currentQuestionType.value === 'multipleChoice' && selectedOption.value && currentCard.value) {
+    if (
+      currentQuestionType.value === 'multipleChoice' &&
+      selectedOption.value &&
+      currentCard.value
+    ) {
       currentCard.value.attempts++;
-      const isCorrect = checkAnswer(selectedOption.value, currentCard.value.card.define);
-      
+      const isCorrect = checkAnswer(
+        selectedOption.value,
+        currentCard.value.card.define
+      );
+
       if (isCorrect) {
         currentCard.value.correctCount++;
-        
+
         if (currentCard.value.correctCount >= 2) {
           currentCard.value.mastered = true;
-          
+
           toast.add({
             severity: 'success',
             summary: t('common.success'),
@@ -152,18 +171,25 @@
         currentCard.value.correctCount = 0;
       }
     }
-    
+
     // Same for write mode if user typed something
-    if (currentQuestionType.value === 'write' && userAnswer.value.trim() && currentCard.value) {
+    if (
+      currentQuestionType.value === 'write' &&
+      userAnswer.value.trim() &&
+      currentCard.value
+    ) {
       currentCard.value.attempts++;
-      const isCorrect = checkAnswer(userAnswer.value, currentCard.value.card.define);
-      
+      const isCorrect = checkAnswer(
+        userAnswer.value,
+        currentCard.value.card.define
+      );
+
       if (isCorrect) {
         currentCard.value.correctCount++;
-        
+
         if (currentCard.value.correctCount >= 2) {
           currentCard.value.mastered = true;
-          
+
           toast.add({
             severity: 'success',
             summary: t('common.success'),
@@ -189,7 +215,7 @@
       currentCard.value.mastered = true;
       masteredCards.value.push(currentCard.value);
       queue.value.shift();
-      
+
       toast.add({
         severity: 'success',
         summary: t('common.success'),
@@ -241,7 +267,10 @@
   const submitAnswer = () => {
     if (!currentCard.value) return;
 
-    const answer = currentQuestionType.value === 'write' ? userAnswer.value : selectedOption.value;
+    const answer =
+      currentQuestionType.value === 'write'
+        ? userAnswer.value
+        : selectedOption.value;
     if (!answer.trim()) return;
 
     currentCard.value.attempts++;
@@ -249,10 +278,10 @@
 
     if (isCorrect) {
       currentCard.value.correctCount++;
-      
+
       if (currentCard.value.correctCount >= 2) {
         currentCard.value.mastered = true;
-        
+
         toast.add({
           severity: 'success',
           summary: t('common.success'),
@@ -278,21 +307,72 @@
     prepareQuestion();
   };
 
-  const restart = () => {
+  const restart = async () => {
+    await recordStudySession();
     sessionComplete.value = false;
     learningMode.value = null;
     userAnswer.value = '';
     selectedOption.value = '';
     showAnswer.value = false;
+    sessionRecorded.value = false;
   };
 
-  const restartSameMode = () => {
+  const restartSameMode = async () => {
+    await recordStudySession();
     initializeLearning();
     sessionComplete.value = false;
+    sessionRecorded.value = false;
+    startTime.value = Date.now(); // Reset start time for new session
   };
 
-  const goBack = () => {
+  const goBack = async () => {
+    await recordStudySession();
     router.push(`/card-sets/${route.params.id}`);
+  };
+
+  const recordStudySession = async () => {
+    if (
+      sessionRecorded.value ||
+      !cardSet.value ||
+      !learningMode.value ||
+      masteredCards.value.length === 0
+    ) {
+      return;
+    }
+
+    sessionRecorded.value = true;
+
+    const endTime = Date.now();
+    const allCards = [...masteredCards.value, ...queue.value];
+
+    // Map learn mode to statistics mode
+    const modeMap: Record<LearningMode, 'learn' | 'learn' | 'learn'> = {
+      write: 'learn',
+      multipleChoice: 'learn',
+      both: 'learn',
+    };
+
+    const sessionData: ICreateSessionRequest = {
+      cardset_id: cardSet.value.id,
+      mode: modeMap[learningMode.value],
+      start_time: new Date(startTime.value).toISOString(),
+      end_time: new Date(endTime).toISOString(),
+      attempts: allCards
+        .filter((card) => card.attempts > 0)
+        .map((card) => ({
+          card_id: card.card.id,
+          correct: card.mastered || card.correctCount > card.incorrectCount,
+          time_spent: Math.floor(
+            (endTime - startTime.value) /
+              1000 /
+              allCards.filter((c) => c.attempts > 0).length
+          ),
+          user_answer: card.mastered ? 'mastered' : 'in-progress',
+          attempted_at: new Date(endTime).toISOString(),
+        })),
+    };
+
+    await statisticsStore.recordSession(sessionData);
   };
 
   const handleKeyPress = (event: KeyboardEvent) => {
@@ -320,7 +400,10 @@
       return 'border-green-500 bg-green-50 ring-2 ring-green-200';
     }
 
-    if (option === selectedOption.value && option !== currentCard.value.card.define) {
+    if (
+      option === selectedOption.value &&
+      option !== currentCard.value.card.define
+    ) {
       return 'border-red-500 bg-red-50 ring-2 ring-red-200';
     }
 
@@ -330,7 +413,7 @@
   const loadCardSet = () => {
     const cardSetId = route.params.id as string;
     const foundCardSet = cardSetStore.getCardSetById(cardSetId);
-    
+
     if (!foundCardSet) {
       toast.add({
         severity: 'error',
@@ -341,15 +424,22 @@
       router.push('/card-sets');
       return;
     }
-    
+
     cardSet.value = foundCardSet;
   };
 
   // Keyboard shortcuts
   const handleKeyDown = (event: KeyboardEvent) => {
     // Ignore if user is typing in an input
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-      if (event.key === 'Enter' && currentQuestionType.value === 'write' && !showAnswer.value) {
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      if (
+        event.key === 'Enter' &&
+        currentQuestionType.value === 'write' &&
+        !showAnswer.value
+      ) {
         submitAnswer();
       }
       return;
@@ -377,12 +467,20 @@
     if (learningMode.value && !sessionComplete.value && currentCard.value) {
       if (currentQuestionType.value === 'multipleChoice' && !showAnswer.value) {
         const optionMap: { [key: string]: number } = {
-          '1': 0, 'a': 0, 'A': 0,
-          '2': 1, 'b': 1, 'B': 1,
-          '3': 2, 'c': 2, 'C': 2,
-          '4': 3, 'd': 3, 'D': 3,
+          '1': 0,
+          a: 0,
+          A: 0,
+          '2': 1,
+          b: 1,
+          B: 1,
+          '3': 2,
+          c: 2,
+          C: 2,
+          '4': 3,
+          d: 3,
+          D: 3,
         };
-        
+
         if (event.key in optionMap) {
           event.preventDefault();
           const index = optionMap[event.key];
@@ -394,10 +492,16 @@
 
       if (event.key === 'Enter') {
         event.preventDefault();
-        if (showAnswer.value && (userAnswer.value.trim() || selectedOption.value)) {
+        if (
+          showAnswer.value &&
+          (userAnswer.value.trim() || selectedOption.value)
+        ) {
           // If answer is showing and user answered, continue to next
           continueToNext();
-        } else if (!showAnswer.value && (userAnswer.value.trim() || selectedOption.value)) {
+        } else if (
+          !showAnswer.value &&
+          (userAnswer.value.trim() || selectedOption.value)
+        ) {
           // If no answer showing yet, submit
           submitAnswer();
         }
@@ -430,15 +534,23 @@
     window.addEventListener('keydown', handleKeyDown);
   });
 
-  onUnmounted(() => {
+  onUnmounted(async () => {
     window.removeEventListener('keydown', handleKeyDown);
+    await recordStudySession();
+  });
+
+  // Watch for session completion to record statistics
+  watch(sessionComplete, async (isComplete) => {
+    if (isComplete) {
+      await recordStudySession();
+    }
   });
 </script>
 
 <template>
   <HeaderThird />
 
-  <div class="flex flex-col items-center max-w-full min-h-svh py-6">
+  <div class="flex flex-col items-center max-w-full py-6 min-h-svh">
     <div class="flex flex-col w-full px-5 lg:px-0 lg:max-w-4xl">
       <!-- Header -->
       <div class="mb-6">
@@ -453,53 +565,76 @@
       </div>
 
       <!-- Learning Mode Selection -->
-      <div v-if="!learningMode && !sessionComplete" class="w-full">
+      <div
+        v-if="!learningMode && !sessionComplete"
+        class="w-full"
+      >
         <Card class="mb-6">
           <template #content>
-            <div class="text-center py-8">
-              <i class="pi pi-cog text-6xl text-purple-500 mb-6"></i>
-              <h2 class="text-2xl font-bold mb-4">{{ t('studyModes.learn.selectMode') }}</h2>
-              <p class="text-gray-600 mb-8">{{ t('studyModes.learn.selectModeDescription') }}</p>
+            <div class="py-8 text-center">
+              <i class="mb-6 text-6xl text-purple-500 pi pi-cog"></i>
+              <h2 class="mb-4 text-2xl font-bold">
+                {{ t('studyModes.learn.selectMode') }}
+              </h2>
+              <p class="mb-8 text-gray-600">
+                {{ t('studyModes.learn.selectModeDescription') }}
+              </p>
 
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-3 max-w-4xl mx-auto">
+              <div
+                class="grid max-w-4xl grid-cols-1 gap-4 mx-auto md:grid-cols-3"
+              >
                 <!-- Write Mode -->
                 <Card
-                  class="cursor-pointer transition-all hover:shadow-lg hover:scale-105 border-2 border-transparent hover:border-purple-300"
+                  class="transition-all border-2 border-transparent cursor-pointer hover:shadow-lg hover:scale-105 hover:border-purple-300"
                   @click="selectLearningMode('write')"
                 >
                   <template #content>
-                    <div class="text-center py-4">
-                      <i class="pi pi-pencil text-5xl mb-4 text-purple-500"></i>
-                      <h3 class="text-lg font-semibold mb-2">{{ t('studyModes.learn.modes.write.title') }}</h3>
-                      <p class="text-sm text-gray-600">{{ t('studyModes.learn.modes.write.description') }}</p>
+                    <div class="py-4 text-center">
+                      <i class="mb-4 text-5xl text-purple-500 pi pi-pencil"></i>
+                      <h3 class="mb-2 text-lg font-semibold">
+                        {{ t('studyModes.learn.modes.write.title') }}
+                      </h3>
+                      <p class="text-sm text-gray-600">
+                        {{ t('studyModes.learn.modes.write.description') }}
+                      </p>
                     </div>
                   </template>
                 </Card>
 
                 <!-- Multiple Choice Mode -->
                 <Card
-                  class="cursor-pointer transition-all hover:shadow-lg hover:scale-105 border-2 border-transparent hover:border-blue-300"
+                  class="transition-all border-2 border-transparent cursor-pointer hover:shadow-lg hover:scale-105 hover:border-blue-300"
                   @click="selectLearningMode('multipleChoice')"
                 >
                   <template #content>
-                    <div class="text-center py-4">
-                      <i class="pi pi-list text-5xl mb-4 text-blue-500"></i>
-                      <h3 class="text-lg font-semibold mb-2">{{ t('studyModes.learn.modes.multipleChoice.title') }}</h3>
-                      <p class="text-sm text-gray-600">{{ t('studyModes.learn.modes.multipleChoice.description') }}</p>
+                    <div class="py-4 text-center">
+                      <i class="mb-4 text-5xl text-blue-500 pi pi-list"></i>
+                      <h3 class="mb-2 text-lg font-semibold">
+                        {{ t('studyModes.learn.modes.multipleChoice.title') }}
+                      </h3>
+                      <p class="text-sm text-gray-600">
+                        {{
+                          t('studyModes.learn.modes.multipleChoice.description')
+                        }}
+                      </p>
                     </div>
                   </template>
                 </Card>
 
                 <!-- Both Mode -->
                 <Card
-                  class="cursor-pointer transition-all hover:shadow-lg hover:scale-105 border-2 border-transparent hover:border-green-300"
+                  class="transition-all border-2 border-transparent cursor-pointer hover:shadow-lg hover:scale-105 hover:border-green-300"
                   @click="selectLearningMode('both')"
                 >
                   <template #content>
-                    <div class="text-center py-4">
-                      <i class="pi pi-star text-5xl mb-4 text-green-500"></i>
-                      <h3 class="text-lg font-semibold mb-2">{{ t('studyModes.learn.modes.both.title') }}</h3>
-                      <p class="text-sm text-gray-600">{{ t('studyModes.learn.modes.both.description') }}</p>
+                    <div class="py-4 text-center">
+                      <i class="mb-4 text-5xl text-green-500 pi pi-star"></i>
+                      <h3 class="mb-2 text-lg font-semibold">
+                        {{ t('studyModes.learn.modes.both.title') }}
+                      </h3>
+                      <p class="text-sm text-gray-600">
+                        {{ t('studyModes.learn.modes.both.description') }}
+                      </p>
                     </div>
                   </template>
                 </Card>
@@ -510,31 +645,43 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="!currentCard && !sessionComplete && learningMode" class="flex flex-col items-center justify-center py-20 text-center">
-        <i class="pi pi-inbox mb-4" style="font-size: 4rem; color: #94a3b8"></i>
+      <div
+        v-else-if="!currentCard && !sessionComplete && learningMode"
+        class="flex flex-col items-center justify-center py-20 text-center"
+      >
+        <i
+          class="mb-4 pi pi-inbox"
+          style="font-size: 4rem; color: #94a3b8"
+        ></i>
         <h2 class="mb-2 text-xl font-semibold text-gray-700">
           {{ t('studyModes.learn.noCards') }}
         </h2>
-        <p class="text-gray-500">{{ t('studyModes.learn.noCardsDescription') }}</p>
+        <p class="text-gray-500">
+          {{ t('studyModes.learn.noCardsDescription') }}
+        </p>
       </div>
 
       <!-- Learning Session -->
-      <div v-else-if="!sessionComplete && currentCard && learningMode" class="w-full">
+      <div
+        v-else-if="!sessionComplete && currentCard && learningMode"
+        class="w-full"
+      >
         <!-- Progress -->
         <div class="mb-6">
-          <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium text-gray-700">
-              <i class="pi pi-check-circle text-green-500 mr-1"></i>
-              {{ t('studyModes.learn.mastered') }}: {{ progress.mastered }} / {{ progress.total }}
+              <i class="mr-1 text-green-500 pi pi-check-circle"></i>
+              {{ t('studyModes.learn.mastered') }}: {{ progress.mastered }} /
+              {{ progress.total }}
             </span>
             <span class="text-sm font-medium text-orange-600">
-              <i class="pi pi-clock mr-1"></i>
+              <i class="mr-1 pi pi-clock"></i>
               {{ t('studyModes.learn.remaining') }}: {{ progress.remaining }}
             </span>
           </div>
-          <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div class="h-3 overflow-hidden bg-gray-200 rounded-full">
             <div
-              class="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 transition-all duration-500"
+              class="h-full transition-all duration-500 bg-gradient-to-r from-blue-500 via-purple-500 to-green-500"
               :style="{ width: `${progress.percentage}%` }"
             ></div>
           </div>
@@ -544,40 +691,57 @@
         <Card class="mb-6">
           <template #content>
             <div class="text-center">
-              <div class="text-sm text-gray-500 mb-2 uppercase tracking-wide flex items-center justify-center gap-2">
+              <div
+                class="flex items-center justify-center gap-2 mb-2 text-sm tracking-wide text-gray-500 uppercase"
+              >
                 <i
                   :class="[
                     'pi',
-                    currentQuestionType === 'write' ? 'pi-pencil text-purple-500' : 'pi-list text-blue-500'
+                    currentQuestionType === 'write'
+                      ? 'pi-pencil text-purple-500'
+                      : 'pi-list text-blue-500',
                   ]"
                 ></i>
                 {{ t('studyModes.learn.defineThis') }}
               </div>
-              <div class="text-3xl font-semibold mb-6 text-gray-900">
+              <div class="mb-6 text-3xl font-semibold text-gray-900">
                 {{ currentCard.card.terminology }}
               </div>
 
               <!-- Difficulty Indicator -->
-              <div v-if="currentCard.attempts > 0" class="mb-4">
-                <span class="text-xs px-3 py-1 rounded-full" :class="{
-                  'bg-green-100 text-green-700': currentCard.correctCount > currentCard.incorrectCount,
-                  'bg-yellow-100 text-yellow-700': currentCard.correctCount === currentCard.incorrectCount,
-                  'bg-red-100 text-red-700': currentCard.correctCount < currentCard.incorrectCount,
-                }">
-                  {{ currentCard.correctCount }}✓ {{ currentCard.incorrectCount }}✗
+              <div
+                v-if="currentCard.attempts > 0"
+                class="mb-4"
+              >
+                <span
+                  class="px-3 py-1 text-xs rounded-full"
+                  :class="{
+                    'bg-green-100 text-green-700':
+                      currentCard.correctCount > currentCard.incorrectCount,
+                    'bg-yellow-100 text-yellow-700':
+                      currentCard.correctCount === currentCard.incorrectCount,
+                    'bg-red-100 text-red-700':
+                      currentCard.correctCount < currentCard.incorrectCount,
+                  }"
+                >
+                  {{ currentCard.correctCount }}✓
+                  {{ currentCard.incorrectCount }}✗
                 </span>
               </div>
 
               <!-- Write Answer Mode -->
-              <div v-if="currentQuestionType === 'write' && !showAnswer" class="mb-4">
+              <div
+                v-if="currentQuestionType === 'write' && !showAnswer"
+                class="mb-4"
+              >
                 <InputText
                   v-model="userAnswer"
                   :placeholder="t('studyModes.learn.placeholder')"
-                  class="w-full p-4 text-lg mb-4"
+                  class="w-full p-4 mb-4 text-lg"
                   @keypress="handleKeyPress"
                   autofocus
                 />
-                <div class="flex gap-3 justify-center">
+                <div class="flex justify-center gap-3">
                   <Button
                     :label="t('studyModes.learn.check')"
                     :disabled="!userAnswer.trim()"
@@ -594,8 +758,11 @@
               </div>
 
               <!-- Multiple Choice Mode -->
-              <div v-if="currentQuestionType === 'multipleChoice' && !showAnswer" class="mb-4">
-                <div class="space-y-3 mb-4">
+              <div
+                v-if="currentQuestionType === 'multipleChoice' && !showAnswer"
+                class="mb-4"
+              >
+                <div class="mb-4 space-y-3">
                   <div
                     v-for="(option, index) in multipleChoiceOptions"
                     :key="index"
@@ -606,14 +773,16 @@
                     @click="selectMultipleChoiceOption(option)"
                   >
                     <div class="flex items-center gap-3">
-                      <span class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 font-semibold text-gray-700">
+                      <span
+                        class="flex items-center justify-center w-8 h-8 font-semibold text-gray-700 bg-gray-100 rounded-full"
+                      >
                         {{ String.fromCharCode(65 + index) }}
                       </span>
-                      <span class="text-left flex-1">{{ option }}</span>
+                      <span class="flex-1 text-left">{{ option }}</span>
                     </div>
                   </div>
                 </div>
-                <div class="flex gap-3 justify-center">
+                <div class="flex justify-center gap-3">
                   <Button
                     :label="t('studyModes.learn.check')"
                     :disabled="!selectedOption"
@@ -630,9 +799,16 @@
               </div>
 
               <!-- Answer Display -->
-              <div v-if="showAnswer" class="mb-4">
-                <div class="p-6 bg-blue-50 border-2 border-blue-500 rounded-lg mb-4">
-                  <div class="text-sm text-blue-600 mb-2 font-semibold uppercase tracking-wide">
+              <div
+                v-if="showAnswer"
+                class="mb-4"
+              >
+                <div
+                  class="p-6 mb-4 border-2 border-blue-500 rounded-lg bg-blue-50"
+                >
+                  <div
+                    class="mb-2 text-sm font-semibold tracking-wide text-blue-600 uppercase"
+                  >
                     {{ t('studyModes.learn.correctAnswer') }}
                   </div>
                   <div class="text-2xl font-semibold text-blue-900">
@@ -641,56 +817,94 @@
                 </div>
 
                 <!-- Feedback for Write Mode -->
-                <div v-if="currentQuestionType === 'write' && userAnswer" class="mb-4">
+                <div
+                  v-if="currentQuestionType === 'write' && userAnswer"
+                  class="mb-4"
+                >
                   <div
                     v-if="checkAnswer(userAnswer, currentCard.card.define)"
-                    class="p-4 bg-green-50 border-2 border-green-500 rounded-lg"
+                    class="p-4 border-2 border-green-500 rounded-lg bg-green-50"
                   >
-                    <div class="flex items-center justify-center gap-2 text-green-700">
-                      <i class="pi pi-check-circle text-2xl"></i>
-                      <span class="text-lg font-semibold">{{ t('studyModes.learn.correctFeedback') }}</span>
+                    <div
+                      class="flex items-center justify-center gap-2 text-green-700"
+                    >
+                      <i class="text-2xl pi pi-check-circle"></i>
+                      <span class="text-lg font-semibold">{{
+                        t('studyModes.learn.correctFeedback')
+                      }}</span>
                     </div>
-                    <div v-if="currentCard.correctCount < 2" class="text-sm text-green-600 mt-2">
+                    <div
+                      v-if="currentCard.correctCount < 2"
+                      class="mt-2 text-sm text-green-600"
+                    >
                       {{ t('studyModes.learn.needOneMore') }}
                     </div>
                   </div>
-                  <div v-else class="p-4 bg-red-50 border-2 border-red-500 rounded-lg">
-                    <div class="flex items-center justify-center gap-2 text-red-700 mb-2">
-                      <i class="pi pi-times-circle text-2xl"></i>
-                      <span class="text-lg font-semibold">{{ t('studyModes.learn.incorrectFeedback') }}</span>
+                  <div
+                    v-else
+                    class="p-4 border-2 border-red-500 rounded-lg bg-red-50"
+                  >
+                    <div
+                      class="flex items-center justify-center gap-2 mb-2 text-red-700"
+                    >
+                      <i class="text-2xl pi pi-times-circle"></i>
+                      <span class="text-lg font-semibold">{{
+                        t('studyModes.learn.incorrectFeedback')
+                      }}</span>
                     </div>
                     <div class="text-sm text-gray-700">
-                      {{ t('studyModes.learn.yourAnswer') }}: <strong>{{ userAnswer }}</strong>
+                      {{ t('studyModes.learn.yourAnswer') }}:
+                      <strong>{{ userAnswer }}</strong>
                     </div>
-                    <div class="text-sm text-red-600 mt-2">
+                    <div class="mt-2 text-sm text-red-600">
                       {{ t('studyModes.learn.addedToQueue') }}
                     </div>
                   </div>
                 </div>
 
                 <!-- Feedback for Multiple Choice Mode -->
-                <div v-if="currentQuestionType === 'multipleChoice' && selectedOption" class="mb-4">
+                <div
+                  v-if="
+                    currentQuestionType === 'multipleChoice' && selectedOption
+                  "
+                  class="mb-4"
+                >
                   <div
                     v-if="checkAnswer(selectedOption, currentCard.card.define)"
-                    class="p-4 bg-green-50 border-2 border-green-500 rounded-lg"
+                    class="p-4 border-2 border-green-500 rounded-lg bg-green-50"
                   >
-                    <div class="flex items-center justify-center gap-2 text-green-700">
-                      <i class="pi pi-check-circle text-2xl"></i>
-                      <span class="text-lg font-semibold">{{ t('studyModes.learn.correctFeedback') }}</span>
+                    <div
+                      class="flex items-center justify-center gap-2 text-green-700"
+                    >
+                      <i class="text-2xl pi pi-check-circle"></i>
+                      <span class="text-lg font-semibold">{{
+                        t('studyModes.learn.correctFeedback')
+                      }}</span>
                     </div>
-                    <div v-if="currentCard.correctCount < 2" class="text-sm text-green-600 mt-2">
+                    <div
+                      v-if="currentCard.correctCount < 2"
+                      class="mt-2 text-sm text-green-600"
+                    >
                       {{ t('studyModes.learn.needOneMore') }}
                     </div>
                   </div>
-                  <div v-else class="p-4 bg-red-50 border-2 border-red-500 rounded-lg">
-                    <div class="flex items-center justify-center gap-2 text-red-700 mb-2">
-                      <i class="pi pi-times-circle text-2xl"></i>
-                      <span class="text-lg font-semibold">{{ t('studyModes.learn.incorrectFeedback') }}</span>
+                  <div
+                    v-else
+                    class="p-4 border-2 border-red-500 rounded-lg bg-red-50"
+                  >
+                    <div
+                      class="flex items-center justify-center gap-2 mb-2 text-red-700"
+                    >
+                      <i class="text-2xl pi pi-times-circle"></i>
+                      <span class="text-lg font-semibold">{{
+                        t('studyModes.learn.incorrectFeedback')
+                      }}</span>
                     </div>
                     <div class="text-sm text-gray-700">
-                      {{ t('studyModes.learn.yourAnswer') }}: <strong>{{ selectedOption }}</strong>
+                      {{ t('studyModes.learn.yourAnswer') }}:
+                      <strong>{{ selectedOption }}</strong>
                     </div>
-                    <div class="text-sm text-red-600 mt-2">
+                    <div class="mt-2 text-sm text-red-600">
                       {{ t('studyModes.learn.addedToQueue') }}
                     </div>
                   </div>
@@ -698,10 +912,10 @@
 
                 <!-- Rate Understanding (if didn't answer) -->
                 <div v-if="!userAnswer && !selectedOption">
-                  <div class="text-sm text-gray-600 mb-4">
+                  <div class="mb-4 text-sm text-gray-600">
                     {{ t('studyModes.learn.rateUnderstanding') }}
                   </div>
-                  <div class="flex gap-3 justify-center">
+                  <div class="flex justify-center gap-3">
                     <Button
                       icon="pi pi-check"
                       :label="t('studyModes.learn.iKnowThis')"
@@ -720,7 +934,10 @@
                 </div>
 
                 <!-- Continue Button (if answered) -->
-                <div v-if="userAnswer || selectedOption" class="mt-4">
+                <div
+                  v-if="userAnswer || selectedOption"
+                  class="mt-4"
+                >
                   <Button
                     icon="pi pi-arrow-right"
                     :label="t('studyModes.learn.continue')"
@@ -731,8 +948,8 @@
                 </div>
               </div>
 
-              <div class="text-xs text-gray-400 mt-4">
-                <i class="pi pi-info-circle mr-1"></i>
+              <div class="mt-4 text-xs text-gray-400">
+                <i class="mr-1 pi pi-info-circle"></i>
                 {{ t('studyModes.learn.progressInfo') }}
               </div>
             </div>
@@ -741,14 +958,19 @@
       </div>
 
       <!-- Session Complete -->
-      <div v-else-if="sessionComplete" class="w-full">
+      <div
+        v-else-if="sessionComplete"
+        class="w-full"
+      >
         <Card>
           <template #content>
-            <div class="text-center py-4">
+            <div class="py-4 text-center">
               <div class="flex items-center justify-center gap-4 mb-4">
-                <i class="pi pi-trophy text-4xl text-yellow-500"></i>
+                <i class="text-4xl text-yellow-500 pi pi-trophy"></i>
                 <div class="text-left">
-                  <h2 class="text-2xl font-bold">{{ t('studyModes.learn.congratulations') }}</h2>
+                  <h2 class="text-2xl font-bold">
+                    {{ t('studyModes.learn.congratulations') }}
+                  </h2>
                   <p class="text-sm text-gray-600">
                     {{ t('studyModes.learn.completedMessage') }}
                   </p>
@@ -756,18 +978,30 @@
               </div>
 
               <!-- Statistics -->
-              <div class="flex gap-3 mb-4 justify-center">
-                <div class="px-4 py-2 bg-green-50 border border-green-500 rounded-lg">
-                  <span class="text-2xl font-bold text-green-700">{{ masteredCards.length }}</span>
-                  <span class="text-xs text-green-600 ml-2">{{ t('studyModes.learn.cardsMastered') }}</span>
+              <div class="flex justify-center gap-3 mb-4">
+                <div
+                  class="px-4 py-2 border border-green-500 rounded-lg bg-green-50"
+                >
+                  <span class="text-2xl font-bold text-green-700">{{
+                    masteredCards.length
+                  }}</span>
+                  <span class="ml-2 text-xs text-green-600">{{
+                    t('studyModes.learn.cardsMastered')
+                  }}</span>
                 </div>
-                <div class="px-4 py-2 bg-blue-50 border border-blue-500 rounded-lg">
-                  <span class="text-2xl font-bold text-blue-700">{{ masteredCards.reduce((sum, c) => sum + c.correctCount, 0) }}</span>
-                  <span class="text-xs text-blue-600 ml-2">{{ t('studyModes.learn.totalCorrect') }}</span>
+                <div
+                  class="px-4 py-2 border border-blue-500 rounded-lg bg-blue-50"
+                >
+                  <span class="text-2xl font-bold text-blue-700">{{
+                    masteredCards.reduce((sum, c) => sum + c.correctCount, 0)
+                  }}</span>
+                  <span class="ml-2 text-xs text-blue-600">{{
+                    t('studyModes.learn.totalCorrect')
+                  }}</span>
                 </div>
               </div>
 
-              <div class="flex gap-2 justify-center flex-wrap">
+              <div class="flex flex-wrap justify-center gap-2">
                 <Button
                   icon="pi pi-refresh"
                   :label="t('studyModes.learn.practiceAgainSameMode')"

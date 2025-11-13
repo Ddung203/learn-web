@@ -53,6 +53,15 @@ func SetupRoutes(router *gin.Engine, db *mongo.Database, cfg *config.Config) {
 			cardSets.PUT("/:id", cardSetController.UpdateCardSet)
 			cardSets.DELETE("/:id", cardSetController.DeleteCardSet)
 		}
+
+		// Statistics
+		statisticsController := controllers.NewStatisticsController(db)
+		statistics := protected.Group("/statistics")
+		{
+			statistics.POST("/sessions", statisticsController.RecordStudySession)
+			statistics.GET("", statisticsController.GetUserStatistics)
+			statistics.GET("/cardsets/:id", statisticsController.GetCardSetStatistics)
+		}
 	}
 }
 

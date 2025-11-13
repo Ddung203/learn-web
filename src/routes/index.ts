@@ -104,6 +104,16 @@ const routes: AppRouteRecord[] = [
     },
   },
   {
+    path: '/statistics',
+    name: 'statistics',
+    component: () => import('../views/Statistics/StatisticsView.vue'),
+    meta: {
+      requiredAuth: true,
+      layout: true,
+      title: 'Thống kê',
+    },
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('../views/Profile/ProfileView.vue'),
