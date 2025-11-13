@@ -1,0 +1,11 @@
+.git
+.gitignore
+tmp/
+bin/
+dist/
+.env
+.env.test
+.env.production
+logs/
+*.log
+Makefile
