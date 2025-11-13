@@ -1,83 +1,66 @@
-import type {
-  ICommonPayloadResponse,
-  ILoginParams,
-  ILoginPayloadResponse,
-  IRegisterPayload,
-  IResendOTPPayload,
-  ISetPasswordPayload,
-  IUser,
-  IVerifyOTPPayload,
-  NewApiResponse,
-} from '~/interfaces';
-import { httpCaller } from '../libs';
+import apiService from './api.service';
 
-export class AuthService {
-  static async login(params: ILoginParams) {
-    const response = await httpCaller.post('/auth/login', params);
+export interface IUser {
+  id: string;
+  username: string;
+  email: string;
+  full_name: string;
+  avatar?: string;
+  created_at: string;
+  updated_at: string;
+}
 
-    return response.data as NewApiResponse<ILoginPayloadResponse>;
+export interface ILoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface IRegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  full_name: string;
+}
+
+export interface ILoginResponse {
+  token: string;
+  user: IUser;
+}
+
+class AuthService {
+  async login(credentials: ILoginRequest): Promise<ILoginResponse> {
+    const response = await apiService.post<ILoginResponse>('/auth/login', credentials);
+    apiService.setAuthToken(response.token);
+    return response;
   }
 
-  static async getProfile() {
-    const response = await httpCaller.get('/auth/profile');
-
-    return response.data as NewApiResponse<IUser>;
+  async loginOrRegister(credentials: ILoginRequest): Promise<ILoginResponse> {
+    const response = await apiService.post<ILoginResponse>('/auth/login-or-register', credentials);
+    apiService.setAuthToken(response.token);
+    return response;
   }
 
-  static async register(
-    payload: IRegisterPayload
-  ): Promise<NewApiResponse<ICommonPayloadResponse>> {
-    const response = await httpCaller.post('/auth/register', { ...payload });
-
-    return response.data as NewApiResponse<ICommonPayloadResponse>;
+  async register(data: IRegisterRequest): Promise<ILoginResponse> {
+    const response = await apiService.post<ILoginResponse>('/auth/register', data);
+    apiService.setAuthToken(response.token);
+    return response;
   }
 
-  static async verifyOTP(
-    payload: IVerifyOTPPayload
-  ): Promise<NewApiResponse<ICommonPayloadResponse>> {
-    const response = await httpCaller.post('/auth/verify-otp', { ...payload });
-
-    return response.data as NewApiResponse<ICommonPayloadResponse>;
+  async getProfile(): Promise<IUser> {
+    return await apiService.get<IUser>('/profile');
   }
 
-  static async setPassword(
-    payload: ISetPasswordPayload
-  ): Promise<NewApiResponse<ICommonPayloadResponse>> {
-    const response = await httpCaller.post('/auth/set-password', {
-      ...payload,
-    });
-
-    return response.data as NewApiResponse<ICommonPayloadResponse>;
+  async updateProfile(data: { full_name?: string; avatar?: string }): Promise<IUser> {
+    return await apiService.put<IUser>('/profile', data);
   }
 
-  static async resendOTP(
-    payload: IResendOTPPayload
-  ): Promise<NewApiResponse<ICommonPayloadResponse>> {
-    const response = await httpCaller.post('/auth/resend-otp', { ...payload });
-
-    return response.data as NewApiResponse<ICommonPayloadResponse>;
+  logout(): void {
+    apiService.clearAuthToken();
   }
 
-  //
-  static async forgotPassword(
-    email: string
-  ): Promise<NewApiResponse<ICommonPayloadResponse>> {
-    const response = await httpCaller.post('/auth/forgot-password', { email });
-
-    return response.data as NewApiResponse<ICommonPayloadResponse>;
-  }
-
-  static async resetPassword(
-    email: string,
-    otpCode: string,
-    newPassword: string
-  ): Promise<NewApiResponse<ICommonPayloadResponse>> {
-    const response = await httpCaller.post('/auth/reset-password', {
-      email,
-      otpCode,
-      newPassword,
-    });
-
-    return response.data as NewApiResponse<ICommonPayloadResponse>;
+  isAuthenticated(): boolean {
+    return apiService.hasAuthToken();
   }
 }
+
+export default new AuthService();

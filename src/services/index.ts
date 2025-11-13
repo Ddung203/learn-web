@@ -1,11 +1,7 @@
-export type PaginationParams = {
-  skip?: number;
-  limit?: number;
-  filter?: Record<string, any>;
-};
+export { default as apiService } from './api.service';
+export { default as authService } from './auth.service';
+export { default as cardSetService } from './cardset.service';
 
-export * from './auth.service';
-export * from './cardset.service';
-export * from './province.service';
-export * from './study-module.service';
-export * from './user.service';
+// Re-export types
+export type { IUser, ILoginRequest, IRegisterRequest, ILoginResponse } from './auth.service';
+export type { ICreateCardSetRequest, IUpdateCardSetRequest } from './cardset.service';

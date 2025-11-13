@@ -9,9 +9,9 @@ export interface ICardSet {
   title: string;
   description: string;
   cards: ICardSetCard[];
-  createdAt: string;
-  updatedAt: string;
-  createdBy?: string;
+  created_at: string;
+  updated_at: string;
+  user_id?: string;
 }
 
 export interface ICreateCardSetParams {
@@ -27,22 +27,22 @@ export interface IUpdateCardSetParams extends Partial<ICreateCardSetParams> {
 export type StudyMode = 'flashcards' | 'test' | 'write' | 'learn';
 
 export interface IStudyProgress {
-  cardId: string;
-  correctCount: number;
-  incorrectCount: number;
-  lastStudied: string;
+  card_id: string;
+  correct_count: number;
+  incorrect_count: number;
+  last_studied: string;
 }
 
 export interface ITestQuestion {
   card: ICardSetCard;
   options: string[];
-  correctAnswer: string;
+  correct_answer: string;
 }
 
 export interface IStudySession {
-  cardSetId: string;
+  cardset_id: string;
   mode: StudyMode;
   progress: IStudyProgress[];
-  startedAt: string;
-  completedAt?: string;
+  started_at: string;
+  completed_at?: string;
 }

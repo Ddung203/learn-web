@@ -1,72 +1,124 @@
 import { defineStore } from 'pinia';
-import { STORE_IDS } from './store-id';
-import { ROLE } from '~/constants';
-import { roleOptions } from '~/constants/vue-ref';
+import { ref } from 'vue';
+import authService, { type IUser, type ILoginRequest, type IRegisterRequest } from '~/services/auth.service';
 
-import type { IUser } from '~/interfaces';
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref<IUser | null>(null);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
-interface AuthState {
-  isLoggedIn: boolean;
-  user: IUser | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-}
-
-export const useAuthStore = defineStore(STORE_IDS.AUTH, {
-  state: (): AuthState => ({
-    isLoggedIn: false,
-    user: null,
-    accessToken: null,
-    refreshToken: null,
-  }),
-
-  getters: {
-    getIsLoggedIn: (state) => state.isLoggedIn || false,
-    getStudentName: (state) => {
-      if (!state.user) return 'Guest';
-      const roleLabel =
-        roleOptions.value.find((option) => option.value === state.user?.role)
-          ?.label || 'Người dùng';
-      return `${state.user?.fullName} - ${roleLabel}`;
-    },
-    getRole: (state) => state.user?.role || ROLE.OTHER,
-  },
-
-  actions: {
-    setIsLoggedIn(isLoggedIn: boolean) {
-      this.isLoggedIn = isLoggedIn;
-    },
-
-    setUser(user: IUser) {
-      this.user = user;
-    },
-
-    updateUserFullName(fullName: string) {
-      if (this.user) {
-        this.user.fullName = fullName;
+  // Initialize: restore user if token exists
+  const initialize = async () => {
+    if (authService.isAuthenticated() && !user.value) {
+      try {
+        await fetchProfile();
+      } catch (err) {
+        console.error('Failed to restore user session:', err);
+        logout();
       }
-    },
+    }
+  };
 
-    setAccessToken(accessToken: string) {
-      this.accessToken = accessToken;
-    },
+  const login = async (credentials: ILoginRequest) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await authService.login(credentials);
+      user.value = response.user;
+      return response;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Login failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
 
-    setRefreshToken(refreshToken: string) {
-      this.refreshToken = refreshToken;
-    },
+  const register = async (data: IRegisterRequest) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await authService.register(data);
+      user.value = response.user;
+      return response;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Registration failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
 
-    logout() {
-      this.reset();
-    },
+  const fetchProfile = async () => {
+    if (!authService.isAuthenticated()) {
+      return;
+    }
 
-    reset() {
-      localStorage.clear();
-      this.isLoggedIn = false;
-      this.user = null;
-      this.accessToken = null;
-      this.refreshToken = null;
-    },
-  },
+    loading.value = true;
+    error.value = null;
+    try {
+      user.value = await authService.getProfile();
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to fetch profile';
+      logout();
+    } finally {
+      loading.value = false;
+    }
+  };
 
+  const logout = () => {
+    authService.logout();
+    user.value = null;
+    error.value = null;
+  };
+
+  const loginOrRegister = async (credentials: ILoginRequest) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await authService.loginOrRegister(credentials);
+      user.value = response.user;
+      return response;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Login/Register failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const updateProfile = async (data: { full_name?: string; avatar?: string }) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const updatedUser = await authService.updateProfile(data);
+      user.value = updatedUser;
+      return updatedUser;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to update profile';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const isAuthenticated = () => {
+    return authService.isAuthenticated() && user.value !== null;
+  };
+
+  return {
+    user,
+    loading,
+    error,
+    login,
+    loginOrRegister,
+    register,
+    fetchProfile,
+    updateProfile,
+    logout,
+    isAuthenticated,
+    initialize,
+  };
+}, {
   persist: true,
 });

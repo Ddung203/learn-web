@@ -14,6 +14,7 @@ import App from './App.vue';
 import { importPrimeVueComponents } from './libs';
 import appRouter from './routes';
 import i18n from './locales';
+import { useAuthStore } from './stores';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -26,3 +27,7 @@ app.use(i18n);
 app.use(appRouter);
 
 app.mount('#app');
+
+// Initialize auth store after mount
+const authStore = useAuthStore();
+authStore.initialize();

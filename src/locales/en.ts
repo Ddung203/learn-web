@@ -1,6 +1,7 @@
 export default {
   common: {
     create: 'Create',
+    created: 'Created',
     save: 'Save',
     cancel: 'Cancel',
     delete: 'Delete',
@@ -9,6 +10,7 @@ export default {
     import: 'Import',
     add: 'Add',
     edit: 'Edit',
+    edited: 'Edited',
     success: 'Success',
     error: 'Error',
     warning: 'Warning',
@@ -18,6 +20,9 @@ export default {
     previous: 'Previous',
     flip: 'Flip Card',
     navigate: 'Navigate',
+    confirmation: 'Confirmation',
+    yes: 'Yes',
+    no: 'No',
   },
   studyModule: {
     title: 'Create a new set',
@@ -42,22 +47,45 @@ export default {
   importPopup: {
     title: 'Import Cards',
     instruction: 'Paste your data here (from Word, Excel, Google Docs, etc.)',
-    placeholder: 'Terminology 1, Definition 1\nTerminology 2, Definition 2\nTerminology 3, Definition 3',
+    placeholder:
+      'Terminology 1, Definition 1\nTerminology 2, Definition 2\nTerminology 3, Definition 3',
     preview: 'Preview',
     noContent: 'No content to preview',
     cancel: 'Cancel',
     import: 'Import',
   },
   login: {
-    title: 'Log in to see more',
-    subtitle: 'Auto register new account if not exist',
-    emailOrUsername: 'Email or username',
+    title: 'Login',
+    subtitle: 'Enter your email and password to continue',
+    email: 'Email',
+    emailPlaceholder: 'Enter your email',
+    fullName: 'Full Name',
+    fullNamePlaceholder: 'Enter your full name',
+    optional: '(Optional)',
     password: 'Password',
-    signIn: 'Sign In',
-    toast: {
-      fillAllFields: 'Please fill in all login information',
-      loginSuccess: 'Login successful',
-      wrongCredentials: 'Incorrect username or password',
+    passwordPlaceholder: 'Enter password',
+    loginButton: 'Login / Register',
+    processing: 'Processing...',
+    autoRegisterInfo:
+      'If the email does not exist, the system will automatically create a new account for you.',
+    noAccount: "Don't have an account?",
+    autoCreateAccount: 'Account will be created automatically on first login',
+    validation: {
+      error: 'Validation Error',
+      required: 'Please enter email and password',
+    },
+    success: {
+      title: 'Login Successful',
+      message: 'Welcome back!',
+    },
+    register: {
+      title: 'Registration Successful',
+      message:
+        'Your account has been created and you are automatically logged in!',
+    },
+    error: {
+      title: 'Login Failed',
+      message: 'Please check your information and try again',
     },
   },
   profile: {

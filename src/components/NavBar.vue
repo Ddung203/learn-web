@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue';
-  import { ROLE } from '~/constants';
   import { createMenuItems } from '~/config/menu.config';
   import appRouter from '~/routes';
   import { useAuthStore, useUIStore } from '~/stores';
@@ -25,16 +24,12 @@
     setTimeout(() => appRouter.push('/introduction'), 100);
   };
 
-  const menuConfig = createMenuItems(navigateHandle, logout);
-
   const items = computed((): MenuItem[] => {
-    header.value = authStore.getIsLoggedIn
-      ? t('navbar.welcomeUser', { name: authStore.getStudentName })
+    header.value = authStore.isAuthenticated()
+      ? t('navbar.welcomeUser', { name: authStore.user?.full_name || authStore.user?.username })
       : t('navbar.welcome');
 
-    const userRole = authStore.getRole;
-
-    return menuConfig[userRole] ?? menuConfig[ROLE.OTHER];
+    return createMenuItems(navigateHandle, logout, authStore.isAuthenticated());
   });
 </script>
 

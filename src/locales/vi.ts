@@ -1,6 +1,7 @@
 export default {
   common: {
     create: 'Tạo',
+    created: 'Đã tạo',
     save: 'Lưu',
     cancel: 'Hủy',
     delete: 'Xóa',
@@ -9,6 +10,7 @@ export default {
     import: 'Nhập',
     add: 'Thêm',
     edit: 'Sửa',
+    edited: 'Đã sửa',
     success: 'Thành công',
     error: 'Lỗi',
     warning: 'Cảnh báo',
@@ -18,6 +20,42 @@ export default {
     previous: 'Quay lại',
     flip: 'Lật thẻ',
     navigate: 'Di chuyển',
+    confirmation: 'Xác nhận',
+    yes: 'Có',
+    no: 'Không',
+  },
+  login: {
+    title: 'Đăng nhập',
+    subtitle: 'Nhập email và mật khẩu để tiếp tục',
+    email: 'Email',
+    emailPlaceholder: 'Nhập email của bạn',
+    fullName: 'Họ và tên',
+    fullNamePlaceholder: 'Nhập họ tên của bạn',
+    optional: '(Không bắt buộc)',
+    password: 'Mật khẩu',
+    passwordPlaceholder: 'Nhập mật khẩu',
+    loginButton: 'Đăng nhập / Đăng ký',
+    processing: 'Đang xử lý...',
+    autoRegisterInfo:
+      'Nếu email chưa tồn tại, hệ thống sẽ tự động tạo tài khoản mới cho bạn.',
+    noAccount: 'Chưa có tài khoản?',
+    autoCreateAccount: 'Tài khoản sẽ được tạo tự động khi đăng nhập lần đầu',
+    validation: {
+      error: 'Lỗi xác thực',
+      required: 'Vui lòng nhập email và mật khẩu',
+    },
+    success: {
+      title: 'Đăng nhập thành công',
+      message: 'Chào mừng bạn quay lại!',
+    },
+    register: {
+      title: 'Đăng ký thành công',
+      message: 'Tài khoản của bạn đã được tạo và đăng nhập tự động!',
+    },
+    error: {
+      title: 'Đăng nhập thất bại',
+      message: 'Vui lòng kiểm tra thông tin và thử lại',
+    },
   },
   studyModule: {
     title: 'Tạo một học phần mới',
@@ -49,18 +87,6 @@ export default {
     noContent: 'Không có nội dung để xem trước',
     cancel: 'Hủy',
     import: 'Nhập',
-  },
-  login: {
-    title: 'Đăng nhập',
-    subtitle: 'Tự động đăng ký tài khoản mới',
-    emailOrUsername: 'Email hoặc tên đăng nhập',
-    password: 'Mật khẩu',
-    signIn: 'Đăng nhập',
-    toast: {
-      fillAllFields: 'Vui lòng nhập đầy đủ thông tin đăng nhập',
-      loginSuccess: 'Đăng nhập thành công',
-      wrongCredentials: 'Tài khoản hoặc mật khẩu không đúng',
-    },
   },
   profile: {
     title: 'Thông tin cá nhân',

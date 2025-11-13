@@ -1,10 +1,10 @@
-import { ROLE } from '~/constants';
-import type { MenuConfig, MenuItem } from '~/interfaces/route.interface';
+import type { MenuItem } from '~/interfaces/route.interface';
 
 export const createMenuItems = (
   navigateHandle: (path: string) => void,
-  logout: () => void
-): MenuConfig => {
+  logout: () => void,
+  isAuthenticated: boolean
+): MenuItem[] => {
   // Base common items
   const homeItem: MenuItem = {
     label: 'Home',
@@ -42,23 +42,10 @@ export const createMenuItems = (
     command: logout,
   };
 
-  // Menu for authenticated users
-  const authenticatedMenu = [
-    homeItem,
-    cardSetsItem,
-    studyModuleItem,
-    profileItem,
-    logoutItem,
-  ];
+  // Return menu based on authentication status
+  if (isAuthenticated) {
+    return [homeItem, cardSetsItem, studyModuleItem, profileItem, logoutItem];
+  }
 
-  // Menu for guests
-  const guestMenu = [homeItem, cardSetsItem, studyModuleItem, loginItem];
-
-  return {
-    [ROLE.ROOT]: authenticatedMenu,
-    [ROLE.ADMIN]: authenticatedMenu,
-    [ROLE.INTERVIEWER]: authenticatedMenu,
-    [ROLE.USER]: authenticatedMenu,
-    [ROLE.OTHER]: guestMenu,
-  };
+  return [homeItem, loginItem];
 };

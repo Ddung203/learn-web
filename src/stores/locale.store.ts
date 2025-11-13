@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { AvailableLocale } from '~/locales';
 import i18n from '~/locales';
+import type { WritableComputedRef } from 'vue';
 
 const LOCALE_STORAGE_KEY = 'chocolearn-locale';
 
@@ -26,7 +27,9 @@ export const useLocaleStore = defineStore('locale', () => {
 
   const setLocale = (locale: AvailableLocale) => {
     currentLocale.value = locale;
-    (i18n.global.locale as any).value = locale;
+    if (i18n.global && 'locale' in i18n.global) {
+      (i18n.global.locale as unknown as WritableComputedRef<AvailableLocale>).value = locale;
+    }
     
     // Save to localStorage
     try {

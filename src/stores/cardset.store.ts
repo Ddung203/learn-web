@@ -1,218 +1,165 @@
 import { defineStore } from 'pinia';
-import type { ICardSet, ICardSetCard, ICreateCardSetParams } from '~/interfaces';
-import { STORE_ID } from './store-id';
+import { ref, computed } from 'vue';
+import type { ICardSet } from '~/interfaces/cardset.interface';
+import cardSetService from '~/services/cardset.service';
 
-interface CardSetState {
-  cardSets: ICardSet[];
-}
-
-export const useCardSetStore = defineStore(STORE_ID.CARDSET, {
-  state: (): CardSetState => ({
-    cardSets: [],
-  }),
-
-  getters: {
-    getAllCardSets: (state): ICardSet[] => {
-      return state.cardSets.sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      );
-    },
-
-    getCardSetById: (state) => {
-      return (id: string): ICardSet | undefined => {
-        return state.cardSets.find((cardSet) => cardSet.id === id);
-      };
-    },
-
-    getTotalCardSets: (state): number => {
-      return state.cardSets.length;
-    },
+// Sample data for offline mode
+const sampleCardSets: ICardSet[] = [
+  {
+    id: '1',
+    title: 'English Vocabulary',
+    description: 'Basic English words for beginners',
+    cards: [
+      { id: '1-1', terminology: 'Hello', define: 'A greeting' },
+      { id: '1-2', terminology: 'Goodbye', define: 'A farewell' },
+      { id: '1-3', terminology: 'Thank you', define: 'Expression of gratitude' },
+    ],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
+  {
+    id: '2',
+    title: 'Programming Terms',
+    description: 'Common programming concepts',
+    cards: [
+      { id: '2-1', terminology: 'Variable', define: 'A storage location with a name' },
+      { id: '2-2', terminology: 'Function', define: 'A reusable block of code' },
+      { id: '2-3', terminology: 'Array', define: 'A collection of elements' },
+    ],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
 
-  actions: {
-    // Initialize with sample data if empty
-    initializeSampleData() {
-      if (this.cardSets.length === 0) {
-        const sampleCardSets: ICardSet[] = [
-          {
-            id: 'cardset-sample-1',
-            title: 'English Vocabulary - Level 1',
-            description: 'Basic English vocabulary for beginners',
-            cards: [
-              { id: 'card-1', terminology: 'Hello', define: 'Xin chào' },
-              { id: 'card-2', terminology: 'Goodbye', define: 'Tạm biệt' },
-              { id: 'card-3', terminology: 'Thank you', define: 'Cảm ơn' },
-              { id: 'card-4', terminology: 'Please', define: 'Làm ơn' },
-              { id: 'card-5', terminology: 'Sorry', define: 'Xin lỗi' },
-              { id: 'card-6', terminology: 'Yes', define: 'Có' },
-              { id: 'card-7', terminology: 'No', define: 'Không' },
-              { id: 'card-8', terminology: 'Good morning', define: 'Chào buổi sáng' },
-              { id: 'card-9', terminology: 'Good night', define: 'Chúc ngủ ngon' },
-              { id: 'card-10', terminology: 'How are you?', define: 'Bạn khỏe không?' },
-            ],
-            createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-            updatedAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-          },
-          {
-            id: 'cardset-sample-2',
-            title: 'Programming Terms',
-            description: 'Common programming terminology',
-            cards: [
-              { id: 'card-11', terminology: 'Variable', define: 'Biến' },
-              { id: 'card-12', terminology: 'Function', define: 'Hàm' },
-              { id: 'card-13', terminology: 'Array', define: 'Mảng' },
-              { id: 'card-14', terminology: 'Object', define: 'Đối tượng' },
-              { id: 'card-15', terminology: 'Loop', define: 'Vòng lặp' },
-              { id: 'card-16', terminology: 'Condition', define: 'Điều kiện' },
-              { id: 'card-17', terminology: 'Class', define: 'Lớp' },
-              { id: 'card-18', terminology: 'Method', define: 'Phương thức' },
-              { id: 'card-19', terminology: 'Interface', define: 'Giao diện' },
-              { id: 'card-20', terminology: 'Algorithm', define: 'Thuật toán' },
-            ],
-            createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-            updatedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-          },
-          {
-            id: 'cardset-sample-3',
-            title: 'Math Formulas',
-            description: 'Essential mathematical formulas',
-            cards: [
-              { id: 'card-21', terminology: 'a² + b² = c²', define: 'Pythagorean theorem' },
-              { id: 'card-22', terminology: 'E = mc²', define: 'Energy-mass equivalence' },
-              { id: 'card-23', terminology: '∫ f(x) dx', define: 'Integral' },
-              { id: 'card-24', terminology: 'd/dx', define: 'Derivative' },
-              { id: 'card-25', terminology: 'π ≈ 3.14159', define: 'Pi constant' },
-              { id: 'card-26', terminology: 'e ≈ 2.71828', define: 'Euler\'s number' },
-            ],
-            createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-            updatedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-          },
-        ];
+export const useCardSetStore = defineStore('cardset', () => {
+  const cardSets = ref<ICardSet[]>([]);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
-        this.cardSets = sampleCardSets;
+  const getAllCardSets = computed(() => cardSets.value);
+  const getCardSetCount = computed(() => cardSets.value.length);
+
+  const getCardSetById = (id: string) => {
+    return cardSets.value.find((cs) => cs.id === id);
+  };
+
+  // Fetch all card sets from API
+  const fetchCardSets = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      cardSets.value = await cardSetService.getCardSets();
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to fetch card sets';
+      console.error('Failed to fetch card sets:', err);
+      // Fallback to sample data if API fails
+      if (cardSets.value.length === 0) {
+        cardSets.value = sampleCardSets;
       }
-    },
+    } finally {
+      loading.value = false;
+    }
+  };
 
-    createCardSet(params: ICreateCardSetParams): ICardSet {
-      const newCardSet: ICardSet = {
-        id: `cardset-${Date.now()}`,
-        title: params.title,
-        description: params.description,
-        cards: params.cards.map((card, index) => ({
-          id: `card-${Date.now()}-${index}`,
-          terminology: card.terminology,
-          define: card.define,
-        })),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+  // Fetch single card set
+  const fetchCardSet = async (id: string) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const cardSet = await cardSetService.getCardSet(id);
+      // Update in store
+      const index = cardSets.value.findIndex((cs) => cs.id === id);
+      if (index !== -1) {
+        cardSets.value[index] = cardSet;
+      } else {
+        cardSets.value.push(cardSet);
+      }
+      return cardSet;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to fetch card set';
+      console.error('Failed to fetch card set:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
 
-      this.cardSets.push(newCardSet);
+  // Add a new card set
+  const addCardSet = async (cardSet: { title: string; description: string; cards: any[] }) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const newCardSet = await cardSetService.createCardSet(cardSet);
+      cardSets.value.unshift(newCardSet);
       return newCardSet;
-    },
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to create card set';
+      console.error('Failed to create card set:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
 
-    updateCardSet(id: string, params: Partial<ICreateCardSetParams>): ICardSet | null {
-      const index = this.cardSets.findIndex((cs) => cs.id === id);
-
-      if (index === -1) {
-        return null;
+  // Update an existing card set
+  const updateCardSet = async (id: string, updates: Partial<ICardSet>) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const updatedCardSet = await cardSetService.updateCardSet(id, updates);
+      const index = cardSets.value.findIndex((cs) => cs.id === id);
+      if (index !== -1) {
+        cardSets.value[index] = updatedCardSet;
       }
-
-      const updatedCardSet: ICardSet = {
-        ...this.cardSets[index],
-        ...(params.title && { title: params.title }),
-        ...(params.description && { description: params.description }),
-        ...(params.cards && {
-          cards: params.cards.map((card, idx) => ({
-            id: `card-${Date.now()}-${idx}`,
-            terminology: card.terminology,
-            define: card.define,
-          })),
-        }),
-        updatedAt: new Date().toISOString(),
-      };
-
-      this.cardSets[index] = updatedCardSet;
       return updatedCardSet;
-    },
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to update card set';
+      console.error('Failed to update card set:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
 
-    deleteCardSet(id: string): boolean {
-      const index = this.cardSets.findIndex((cs) => cs.id === id);
-
-      if (index === -1) {
-        return false;
+  // Delete a card set
+  const deleteCardSet = async (id: string) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      await cardSetService.deleteCardSet(id);
+      const index = cardSets.value.findIndex((cs) => cs.id === id);
+      if (index !== -1) {
+        cardSets.value.splice(index, 1);
       }
-
-      this.cardSets.splice(index, 1);
       return true;
-    },
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to delete card set';
+      console.error('Failed to delete card set:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
 
-    // Card operations within a card set
-    addCardToSet(cardSetId: string, card: Omit<ICardSetCard, 'id'>): boolean {
-      const cardSet = this.cardSets.find((cs) => cs.id === cardSetId);
+  // Initialize with sample data
+  const initializeSampleData = () => {
+    if (cardSets.value.length === 0) {
+      cardSets.value = sampleCardSets;
+    }
+  };
 
-      if (!cardSet) {
-        return false;
-      }
-
-      const newCard: ICardSetCard = {
-        id: `card-${Date.now()}`,
-        ...card,
-      };
-
-      cardSet.cards.push(newCard);
-      cardSet.updatedAt = new Date().toISOString();
-      return true;
-    },
-
-    updateCardInSet(
-      cardSetId: string,
-      cardId: string,
-      updates: Partial<Omit<ICardSetCard, 'id'>>
-    ): boolean {
-      const cardSet = this.cardSets.find((cs) => cs.id === cardSetId);
-
-      if (!cardSet) {
-        return false;
-      }
-
-      const cardIndex = cardSet.cards.findIndex((c) => c.id === cardId);
-
-      if (cardIndex === -1) {
-        return false;
-      }
-
-      cardSet.cards[cardIndex] = {
-        ...cardSet.cards[cardIndex],
-        ...updates,
-      };
-
-      cardSet.updatedAt = new Date().toISOString();
-      return true;
-    },
-
-    deleteCardFromSet(cardSetId: string, cardId: string): boolean {
-      const cardSet = this.cardSets.find((cs) => cs.id === cardSetId);
-
-      if (!cardSet) {
-        return false;
-      }
-
-      const cardIndex = cardSet.cards.findIndex((c) => c.id === cardId);
-
-      if (cardIndex === -1) {
-        return false;
-      }
-
-      cardSet.cards.splice(cardIndex, 1);
-      cardSet.updatedAt = new Date().toISOString();
-      return true;
-    },
-
-    clearAllCardSets() {
-      this.cardSets = [];
-    },
-  },
-
-  persist: true,
+  return {
+    cardSets,
+    loading,
+    error,
+    getAllCardSets,
+    getCardSetById,
+    getCardSetCount,
+    fetchCardSets,
+    fetchCardSet,
+    addCardSet,
+    updateCardSet,
+    deleteCardSet,
+    initializeSampleData,
+  };
 });

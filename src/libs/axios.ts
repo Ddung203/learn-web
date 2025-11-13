@@ -1,6 +1,4 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
-
-import { STORE_IDS } from '~/stores';
 import { APP_CONFIG } from '../config';
 
 const axiosInstance = axios.create({
@@ -10,10 +8,11 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const auth = JSON.parse(localStorage.getItem(STORE_IDS.AUTH) || '{}');
+    // Get token from localStorage
+    const token = localStorage.getItem('auth_token');
 
-    if (auth?.accessToken && config.headers) {
-      config.headers.Authorization = `Bearer ${auth.accessToken}`;
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     config.headers['Accept-Language'] = APP_CONFIG.I18N_LANGUAGE;

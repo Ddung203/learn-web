@@ -2,22 +2,25 @@
   import { computed, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
+  import { useConfirm } from 'primevue/useconfirm';
   import HeaderThird from '~/components/HeaderThird.vue';
-  import Loading from '~/components/Loading.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useCardSetStore } from '~/stores';
 
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
   const { t } = useLocale();
   const cardSetStore = useCardSetStore();
 
   const cardSets = computed(() => cardSetStore.getAllCardSets);
+  const loading = computed(() => cardSetStore.loading);
 
-  const loadCardSets = () => {
-    // Initialize sample data if empty
-    if (cardSetStore.getTotalCardSets === 0) {
-      cardSetStore.initializeSampleData();
+  const loadCardSets = async () => {
+    try {
+      await cardSetStore.fetchCardSets();
+    } catch (error) {
+      console.error('Failed to load card sets:', error);
     }
   };
 
@@ -29,27 +32,24 @@
     router.push('/study-module');
   };
 
-  const deleteCardSet = (cardSetId: string, event: Event) => {
+  const deleteCardSet = async (cardSetId: string, event: Event) => {
     event.stopPropagation();
-    
-    if (confirm(t('cardSets.confirmDelete'))) {
-      const success = cardSetStore.deleteCardSet(cardSetId);
-      
-      if (success) {
-        toast.add({
-          severity: 'success',
-          summary: t('common.success'),
-          detail: t('cardSets.toast.deleteSuccess'),
-          life: 3000,
-        });
-      } else {
-        toast.add({
-          severity: 'error',
-          summary: t('common.error'),
-          detail: t('cardSets.toast.deleteError'),
-          life: 3000,
-        });
-      }
+
+    try {
+      await cardSetStore.deleteCardSet(cardSetId);
+      toast.add({
+        severity: 'success',
+        summary: t('common.success'),
+        detail: t('cardSets.toast.deleteSuccess'),
+        life: 3000,
+      });
+    } catch (error) {
+      toast.add({
+        severity: 'error',
+        summary: t('common.error'),
+        detail: t('cardSets.toast.deleteError'),
+        life: 3000,
+      });
     }
   };
 
@@ -71,7 +71,9 @@
   <HeaderThird />
 
   <div class="flex flex-col items-center max-w-full min-h-svh">
-    <div class="flex flex-col w-full min-h-screen px-5 py-6 lg:px-0 lg:py-16 lg:max-w-7xl">
+    <div
+      class="flex flex-col w-full min-h-screen px-5 py-6 lg:px-0 lg:py-16 lg:max-w-7xl"
+    >
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <h1 class="text-3xl font-bold">{{ t('cardSets.title') }}</h1>
@@ -87,7 +89,10 @@
         v-if="cardSets.length === 0"
         class="flex flex-col items-center justify-center py-20 text-center"
       >
-        <i class="pi pi-inbox mb-4" style="font-size: 4rem; color: #94a3b8"></i>
+        <i
+          class="mb-4 pi pi-inbox"
+          style="font-size: 4rem; color: #94a3b8"
+        ></i>
         <h2 class="mb-2 text-xl font-semibold text-gray-700">
           {{ t('cardSets.empty.title') }}
         </h2>
@@ -100,26 +105,31 @@
       </div>
 
       <!-- Card Sets Grid -->
-      <div v-else class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div
+        v-else
+        class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+      >
         <Card
           v-for="cardSet in cardSets"
           :key="cardSet.id"
-          class="cursor-pointer transition-shadow hover:shadow-lg"
+          class="transition-shadow cursor-pointer hover:shadow-lg"
           @click="goToCardSetDetail(cardSet.id)"
         >
           <template #title>
             <div class="text-lg font-semibold">{{ cardSet.title }}</div>
           </template>
           <template #content>
-            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+            <p class="mb-4 text-sm text-gray-600 line-clamp-2">
               {{ cardSet.description || t('cardSets.noDescription') }}
             </p>
-            <div class="flex items-center justify-between text-sm text-gray-500">
+            <div
+              class="flex items-center justify-between text-sm text-gray-500"
+            >
               <span>
-                <i class="pi pi-clone mr-1"></i>
+                <i class="mr-1 pi pi-clone"></i>
                 {{ cardSet.cards.length }} {{ t('cardSets.cards') }}
               </span>
-              <span>{{ formatDate(cardSet.updatedAt) }}</span>
+              <span>{{ formatDate(cardSet.updated_at) }}</span>
             </div>
           </template>
           <template #footer>

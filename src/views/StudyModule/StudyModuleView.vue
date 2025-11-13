@@ -66,7 +66,7 @@
   };
 
   // Save study module
-  const saveStudyModule = () => {
+  const saveStudyModule = async () => {
     if (!formData.title.trim()) {
       toast.add({
         severity: 'warn',
@@ -96,7 +96,7 @@
       isLoading.value = true;
       
       // Create card set using store
-      const newCardSet = cardSetStore.createCardSet({
+      const newCardSet = await cardSetStore.addCardSet({
         title: formData.title,
         description: formData.description,
         cards: validData,

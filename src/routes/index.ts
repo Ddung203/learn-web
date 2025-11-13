@@ -1,8 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-
-import { authGuard, redirectIfAuthenticated } from '~/guards/auth.guard';
-import { ROLE } from '~/constants';
 import type { AppRouteRecord } from '~/interfaces/route.interface';
+import { authGuard } from '~/guards/auth.guard';
 
 const routes: AppRouteRecord[] = [
   {
@@ -11,13 +9,6 @@ const routes: AppRouteRecord[] = [
     redirect: '/introduction',
     meta: {
       requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
       layout: true,
       title: 'Home',
     },
@@ -26,16 +17,8 @@ const routes: AppRouteRecord[] = [
     path: '/login',
     name: 'login',
     component: () => import('../views/Login/LoginView.vue'),
-    beforeEnter: redirectIfAuthenticated,
     meta: {
       requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
       layout: true,
       title: 'Đăng nhập',
     },
@@ -46,13 +29,6 @@ const routes: AppRouteRecord[] = [
     component: () => import('../views/Introduction/IntroductionView.vue'),
     meta: {
       requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
       layout: true,
       title: 'Giới thiệu',
     },
@@ -62,14 +38,7 @@ const routes: AppRouteRecord[] = [
     name: 'study-module',
     component: () => import('../views/StudyModule/StudyModuleView.vue'),
     meta: {
-      requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
+      requiredAuth: true,
       layout: true,
       title: 'Học phần',
     },
@@ -79,14 +48,7 @@ const routes: AppRouteRecord[] = [
     name: 'card-sets',
     component: () => import('../views/CardSets/CardSetsView.vue'),
     meta: {
-      requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
+      requiredAuth: true,
       layout: true,
       title: 'Bộ thẻ học tập',
     },
@@ -96,14 +58,7 @@ const routes: AppRouteRecord[] = [
     name: 'card-set-detail',
     component: () => import('../views/CardSets/CardSetDetailView.vue'),
     meta: {
-      requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
+      requiredAuth: true,
       layout: true,
       title: 'Chi tiết bộ thẻ',
     },
@@ -113,14 +68,7 @@ const routes: AppRouteRecord[] = [
     name: 'study-flashcards',
     component: () => import('../views/StudyModes/FlashcardsView.vue'),
     meta: {
-      requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
+      requiredAuth: true,
       layout: true,
       title: 'Flashcards',
     },
@@ -130,14 +78,7 @@ const routes: AppRouteRecord[] = [
     name: 'study-test',
     component: () => import('../views/StudyModes/TestView.vue'),
     meta: {
-      requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
+      requiredAuth: true,
       layout: true,
       title: 'Test',
     },
@@ -147,14 +88,7 @@ const routes: AppRouteRecord[] = [
     name: 'study-write',
     component: () => import('../views/StudyModes/WriteView.vue'),
     meta: {
-      requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
+      requiredAuth: true,
       layout: true,
       title: 'Write',
     },
@@ -164,14 +98,7 @@ const routes: AppRouteRecord[] = [
     name: 'study-learn',
     component: () => import('../views/StudyModes/LearnView.vue'),
     meta: {
-      requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
+      requiredAuth: true,
       layout: true,
       title: 'Learn',
     },
@@ -180,10 +107,8 @@ const routes: AppRouteRecord[] = [
     path: '/profile',
     name: 'profile',
     component: () => import('../views/Profile/ProfileView.vue'),
-    beforeEnter: authGuard,
     meta: {
       requiredAuth: true,
-      requiredRole: [ROLE.ROOT, ROLE.ADMIN, ROLE.INTERVIEWER, ROLE.USER],
       layout: true,
       title: 'Thông tin cá nhân',
     },
@@ -194,13 +119,6 @@ const routes: AppRouteRecord[] = [
     component: () => import('../views/NotFound/NotFoundView.vue'),
     meta: {
       requiredAuth: false,
-      requiredRole: [
-        ROLE.ROOT,
-        ROLE.ADMIN,
-        ROLE.INTERVIEWER,
-        ROLE.USER,
-        ROLE.OTHER,
-      ],
       layout: true,
       title: 'Không tìm thấy trang',
     },
@@ -209,10 +127,9 @@ const routes: AppRouteRecord[] = [
 
 const appRouter = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: routes as any, // Type assertion to handle custom meta interface
+  routes: routes as any,
 });
 
-// Global navigation guard
 appRouter.beforeEach(authGuard);
 
 export default appRouter;

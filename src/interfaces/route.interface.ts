@@ -1,12 +1,9 @@
-import type { RoleValue } from '~/constants';
 import type { RouteRecordRaw } from 'vue-router';
 
 export interface RouteMeta {
   requiredAuth: boolean;
-  requiredRole: RoleValue[];
   layout?: boolean;
   title?: string;
-  requiresEmailVerification?: boolean;
 }
 
 export interface AppRouteRecord extends Omit<RouteRecordRaw, 'meta'> {
@@ -20,8 +17,4 @@ export interface MenuItem {
   command?: () => void;
   items?: MenuItem[];
   visible?: boolean;
-}
-
-export interface MenuConfig {
-  [key: string]: MenuItem[];
 }
