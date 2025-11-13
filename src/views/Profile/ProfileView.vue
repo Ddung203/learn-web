@@ -127,8 +127,7 @@
                     }}
                   </h1>
                   <p class="flex items-center gap-2 text-blue-100">
-                    <i class="text-sm pi pi-at"></i>
-                    {{ user?.username }}
+                    @{{ user?.username }}
                   </p>
                 </div>
               </div>
@@ -247,7 +246,7 @@
               </div>
 
               <!-- Statistics (if needed later) -->
-              <div class="grid grid-cols-1 gap-4 mt-8 md:grid-cols-3">
+              <div class="hidden grid-cols-1 gap-4 mt-8 md:grid-cols-3">
                 <div
                   class="p-4 text-center border border-blue-100 rounded-lg bg-blue-50"
                 >

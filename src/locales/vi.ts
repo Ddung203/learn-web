@@ -72,7 +72,7 @@ export default {
     toast: {
       importSuccess: 'Đã nhập {count} thẻ thành công',
       titleRequired: 'Vui lòng nhập tiêu đề',
-      atLeastOneCard: 'Vui lòng thêm ít nhất 1 thẻ hợp lệ',
+      atLeastOneCard: 'Vui lòng thêm ít nhất 4 thẻ hợp lệ',
       createSuccess: 'Tạo học phần thành công',
       createError: 'Có lỗi xảy ra khi tạo học phần',
     },

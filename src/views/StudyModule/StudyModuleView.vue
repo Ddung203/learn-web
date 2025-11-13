@@ -14,7 +14,7 @@
   const toast = useToast();
   const { t } = useLocale();
   const cardSetStore = useCardSetStore();
-  
+
   const isLoading = ref(false);
   const isResendLoading = ref(false);
   const isShowPopup = ref(false);
@@ -82,7 +82,7 @@
       (item) => item.terminology.trim() !== '' && item.define.trim() !== ''
     );
 
-    if (validData.length === 0) {
+    if (validData.length < 4) {
       toast.add({
         severity: 'warn',
         summary: t('common.warning'),
@@ -94,7 +94,7 @@
 
     try {
       isLoading.value = true;
-      
+
       // Create card set using store
       const newCardSet = await cardSetStore.addCardSet({
         title: formData.title,
@@ -149,7 +149,9 @@
     >
       <!-- Header -->
       <div class="flex items-center justify-between bg-white form-header">
-        <span class="text-xl font-bold lg:text-3xl">{{ t('studyModule.title') }}</span>
+        <span class="text-xl font-bold lg:text-3xl">{{
+          t('studyModule.title')
+        }}</span>
         <Button
           :label="t('studyModule.createButton')"
           @click="saveStudyModule"

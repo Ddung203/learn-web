@@ -39,7 +39,7 @@ export default {
     toast: {
       importSuccess: 'Successfully imported {count} cards',
       titleRequired: 'Please enter a title',
-      atLeastOneCard: 'Please add at least 1 valid card',
+      atLeastOneCard: 'Please add at least 4 valid cards',
       createSuccess: 'Study module created successfully',
       createError: 'An error occurred while creating the study module',
     },
