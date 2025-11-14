@@ -1,8 +1,9 @@
 <script setup lang="ts">
-  import { computed, onMounted } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import HeaderThird from '~/components/HeaderThird.vue';
+  import ExportImportDialog from '~/components/ExportImportDialog.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useCardSetStore } from '~/stores';
 
@@ -10,6 +11,12 @@
   const toast = useToast();
   const { t, isVietnamese } = useLocale();
   const cardSetStore = useCardSetStore();
+
+  const showExportImportDialog = ref(false);
+  const dialogMode = ref<'export' | 'import' | 'share'>('import');
+  const selectedCardSetId = ref<string | undefined>(undefined);
+  const showDeleteDialog = ref(false);
+  const cardSetToDelete = ref<{ id: string; title: string } | null>(null);
 
   const cardSets = computed(() => cardSetStore.getAllCardSets);
 
@@ -29,17 +36,25 @@
     router.push('/study-module');
   };
 
-  const deleteCardSet = async (cardSetId: string, event: Event) => {
+  const confirmDeleteCardSet = (cardSetId: string, cardSetTitle: string, event: Event) => {
     event.stopPropagation();
+    cardSetToDelete.value = { id: cardSetId, title: cardSetTitle };
+    showDeleteDialog.value = true;
+  };
+
+  const deleteCardSet = async () => {
+    if (!cardSetToDelete.value) return;
 
     try {
-      await cardSetStore.deleteCardSet(cardSetId);
+      await cardSetStore.deleteCardSet(cardSetToDelete.value.id);
       toast.add({
         severity: 'success',
         summary: t('common.success'),
         detail: t('cardSets.toast.deleteSuccess'),
         life: 3000,
       });
+      showDeleteDialog.value = false;
+      cardSetToDelete.value = null;
     } catch (error) {
       toast.add({
         severity: 'error',
@@ -48,6 +63,11 @@
         life: 3000,
       });
     }
+  };
+
+  const cancelDelete = () => {
+    showDeleteDialog.value = false;
+    cardSetToDelete.value = null;
   };
 
   const formatDate = (dateString: string) => {
@@ -59,6 +79,26 @@
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  const openImportDialog = () => {
+    dialogMode.value = 'import';
+    selectedCardSetId.value = undefined;
+    showExportImportDialog.value = true;
+  };
+
+  const openExportDialog = (cardSetId: string, event: Event) => {
+    event.stopPropagation();
+    dialogMode.value = 'export';
+    selectedCardSetId.value = cardSetId;
+    showExportImportDialog.value = true;
+  };
+
+  const openShareDialog = (cardSetId: string, event: Event) => {
+    event.stopPropagation();
+    dialogMode.value = 'share';
+    selectedCardSetId.value = cardSetId;
+    showExportImportDialog.value = true;
   };
 
   onMounted(() => {
@@ -76,11 +116,19 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <h1 class="text-3xl font-bold">{{ t('cardSets.title') }}</h1>
-        <Button
-          icon="pi pi-plus"
-          :label="t('cardSets.createNew')"
-          @click="createNewCardSet"
-        />
+        <div class="flex gap-2">
+          <Button
+            icon="pi pi-upload"
+            :label="t('cardSets.import')"
+            severity="secondary"
+            @click="openImportDialog"
+          />
+          <Button
+            icon="pi pi-plus"
+            :label="t('cardSets.createNew')"
+            @click="createNewCardSet"
+          />
+        </div>
       </div>
 
       <!-- Empty State -->
@@ -142,11 +190,28 @@
                 @click.stop="goToCardSetDetail(cardSet.id)"
               />
               <Button
+                icon="pi pi-share-alt"
+                severity="info"
+                size="small"
+                outlined
+                v-tooltip.top="t('cardSets.share')"
+                @click="openShareDialog(cardSet.id, $event)"
+              />
+              <Button
+                icon="pi pi-download"
+                severity="secondary"
+                size="small"
+                outlined
+                v-tooltip.top="t('cardSets.export')"
+                @click="openExportDialog(cardSet.id, $event)"
+              />
+              <Button
                 icon="pi pi-trash"
                 severity="danger"
                 size="small"
                 outlined
-                @click="deleteCardSet(cardSet.id, $event)"
+                v-tooltip.top="t('common.delete')"
+                @click="confirmDeleteCardSet(cardSet.id, cardSet.title, $event)"
               />
             </div>
           </template>
@@ -154,6 +219,48 @@
       </div>
     </div>
   </div>
+
+  <ExportImportDialog
+    v-model:visible="showExportImportDialog"
+    :card-set-id="selectedCardSetId"
+    :mode="dialogMode"
+  />
+
+  <Dialog
+    v-model:visible="showDeleteDialog"
+    :header="t('common.confirmation')"
+    :modal="true"
+    :style="{ width: '450px' }"
+    :breakpoints="{ '575px': '90vw' }"
+  >
+    <div class="flex flex-col gap-4">
+      <div class="flex items-start gap-3">
+        <i class="pi pi-exclamation-triangle text-3xl text-orange-500"></i>
+        <div class="flex-1">
+          <p class="mb-2 text-gray-800">{{ t('cardSets.confirmDelete') }}</p>
+          <p v-if="cardSetToDelete" class="font-semibold text-gray-900">
+            "{{ cardSetToDelete.title }}"
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <Button
+          :label="t('common.cancel')"
+          severity="secondary"
+          @click="cancelDelete"
+        />
+        <Button
+          :label="t('common.delete')"
+          icon="pi pi-trash"
+          severity="danger"
+          @click="deleteCardSet"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <style scoped>

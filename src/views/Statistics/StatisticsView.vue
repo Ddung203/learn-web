@@ -559,110 +559,163 @@
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <!-- Total Study Time -->
           <div
-            class="overflow-hidden transition-all duration-200 transform bg-white shadow-lg rounded-2xl hover:shadow-xl hover:scale-105"
+            class="p-6 overflow-hidden transition-all duration-200 transform bg-white shadow-md rounded-2xl hover:shadow-lg"
           >
-            <div class="p-6 bg-gradient-to-br from-blue-500 to-blue-600">
-              <div class="flex items-center justify-between mb-2">
-                <Avatar
-                  icon="pi pi-clock"
-                  size="large"
-                  shape="circle"
-                  class="text-white bg-white/20"
-                />
-                <Badge
-                  :value="
-                    '+' + Math.round(overview.total_study_time / 3600) + 'h'
-                  "
-                  severity="info"
-                />
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-4">
+                <div
+                  class="flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-50"
+                >
+                  <i class="text-2xl pi pi-clock text-indigo-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-gray-900">
+                    {{ formatTime(overview.total_study_time) }}
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-500">
+                    {{ t('statistics.totalStudyTime') || 'Total Study Time' }}
+                  </p>
+                </div>
               </div>
-              <h3 class="text-3xl font-bold text-white">
-                {{ formatTime(overview.total_study_time) }}
-              </h3>
-              <p class="mt-1 text-sm text-blue-100">
-                {{ t('statistics.totalStudyTime') || 'Total Study Time' }}
-              </p>
+              <div
+                class="flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-50"
+              >
+                <i class="text-sm pi pi-arrow-up text-emerald-600"></i>
+                <span class="text-sm font-semibold text-emerald-600"
+                  >{{
+                    Math.round(
+                      (overview.total_study_time /
+                        (overview.daily_stats?.[overview.daily_stats.length - 2]
+                          ?.time_spent || 1)) *
+                        100
+                    )
+                  }}%</span
+                >
+              </div>
             </div>
           </div>
 
           <!-- Total Cards Studied -->
           <div
-            class="overflow-hidden transition-all duration-200 transform bg-white shadow-lg rounded-2xl hover:shadow-xl hover:scale-105"
+            class="p-6 overflow-hidden transition-all duration-200 transform bg-white shadow-md rounded-2xl hover:shadow-lg"
           >
-            <div class="p-6 bg-gradient-to-br from-green-500 to-emerald-600">
-              <div class="flex items-center justify-between mb-2">
-                <Avatar
-                  icon="pi pi-book"
-                  size="large"
-                  shape="circle"
-                  class="text-white bg-white/20"
-                />
-                <Badge
-                  :value="'+' + overview.total_sessions"
-                  severity="success"
-                />
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-4">
+                <div
+                  class="flex items-center justify-center w-16 h-16 rounded-2xl bg-green-50"
+                >
+                  <i class="text-2xl pi pi-book text-green-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-gray-900">
+                    {{ overview.total_cards_studied.toLocaleString() }}
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-500">
+                    {{ t('statistics.cardsStudied') || 'Cards Studied' }}
+                  </p>
+                </div>
               </div>
-              <h3 class="text-3xl font-bold text-white">
-                {{ overview.total_cards_studied }}
-              </h3>
-              <p class="mt-1 text-sm text-green-100">
-                {{ t('statistics.cardsStudied') || 'Cards Studied' }}
-              </p>
+              <div
+                class="flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-50"
+              >
+                <i class="text-sm pi pi-arrow-up text-emerald-600"></i>
+                <span class="text-sm font-semibold text-emerald-600"
+                  >{{ overview.total_sessions }}%</span
+                >
+              </div>
             </div>
           </div>
 
           <!-- Overall Accuracy -->
           <div
-            class="overflow-hidden transition-all duration-200 transform bg-white shadow-lg rounded-2xl hover:shadow-xl hover:scale-105"
+            class="p-6 overflow-hidden transition-all duration-200 transform bg-white shadow-md rounded-2xl hover:shadow-lg"
           >
-            <div class="p-6 bg-gradient-to-br from-purple-500 to-purple-600">
-              <div class="flex items-center justify-between mb-2">
-                <Avatar
-                  icon="pi pi-check-circle"
-                  size="large"
-                  shape="circle"
-                  class="text-white bg-white/20"
-                />
-                <Badge
-                  :value="Math.round(overview.overall_accuracy) + '%'"
-                  severity="info"
-                />
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-4">
+                <div
+                  class="flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-50"
+                >
+                  <i class="text-2xl pi pi-check-circle text-purple-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-gray-900">
+                    {{ Math.round(overview.overall_accuracy) }}%
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-500">
+                    {{ t('statistics.overallAccuracy') || 'Overall Accuracy' }}
+                  </p>
+                </div>
               </div>
-              <h3 class="text-3xl font-bold text-white">
-                {{ Math.round(overview.overall_accuracy) }}%
-              </h3>
-              <p class="mt-1 text-sm text-purple-100">
-                {{ t('statistics.overallAccuracy') || 'Overall Accuracy' }}
-              </p>
+              <div
+                class="flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-50"
+              >
+                <i class="text-sm pi pi-arrow-up text-emerald-600"></i>
+                <span class="text-sm font-semibold text-emerald-600"
+                  >{{
+                    Math.abs(
+                      Math.round(
+                        overview.overall_accuracy -
+                          (overview.daily_stats?.[
+                            overview.daily_stats.length - 2
+                          ]?.accuracy || overview.overall_accuracy)
+                      )
+                    )
+                  }}%</span
+                >
+              </div>
             </div>
           </div>
 
           <!-- Current Streak -->
           <div
-            class="overflow-hidden transition-all duration-200 transform bg-white shadow-lg rounded-2xl hover:shadow-xl hover:scale-105"
+            class="p-6 overflow-hidden transition-all duration-200 transform bg-white shadow-md rounded-2xl hover:shadow-lg"
           >
-            <div class="p-6 bg-gradient-to-br from-orange-500 to-red-600">
-              <div class="flex items-center justify-between mb-2">
-                <Avatar
-                  icon="pi pi-bolt"
-                  size="large"
-                  shape="circle"
-                  class="text-white bg-white/20"
-                />
-                <Badge
-                  :value="'🔥 ' + overview.current_streak"
-                  severity="warning"
-                />
-              </div>
-              <h3 class="text-3xl font-bold text-white">
-                {{ overview.current_streak }} Days
-              </h3>
-              <p class="mt-1 text-sm text-orange-100">
-                {{ t('statistics.currentStreak') || 'Current Streak' }}
-                <span class="opacity-75"
-                  >(Best: {{ overview.longest_streak }})</span
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-4">
+                <div
+                  class="flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-50"
                 >
-              </p>
+                  <i class="text-2xl pi pi-bolt text-orange-600"></i>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-gray-900">
+                    {{ overview.current_streak }}
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-500">
+                    {{ t('statistics.currentStreak') || 'Current Streak' }}
+                  </p>
+                </div>
+              </div>
+              <div
+                class="flex items-center gap-1 px-3 py-1 rounded-lg"
+                :class="
+                  overview.current_streak >= overview.longest_streak / 2
+                    ? 'bg-emerald-50'
+                    : 'bg-gray-50'
+                "
+              >
+                <i
+                  class="text-sm pi"
+                  :class="
+                    overview.current_streak >= overview.longest_streak / 2
+                      ? 'pi-arrow-up text-emerald-600'
+                      : 'pi-arrow-down text-gray-600'
+                  "
+                ></i>
+                <span
+                  class="text-sm font-semibold"
+                  :class="
+                    overview.current_streak >= overview.longest_streak / 2
+                      ? 'text-emerald-600'
+                      : 'text-gray-600'
+                  "
+                  >{{
+                    Math.round(
+                      (overview.current_streak / overview.longest_streak) * 100
+                    )
+                  }}%</span
+                >
+              </div>
             </div>
           </div>
         </div>

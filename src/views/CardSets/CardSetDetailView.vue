@@ -4,6 +4,7 @@
   import { useToast } from 'primevue/usetoast';
   import type { ICardSet, StudyMode } from '~/interfaces';
   import HeaderThird from '~/components/HeaderThird.vue';
+  import ExportImportDialog from '~/components/ExportImportDialog.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useCardSetStore } from '~/stores';
 
@@ -14,6 +15,8 @@
   const cardSetStore = useCardSetStore();
 
   const cardSet = ref<ICardSet | null>(null);
+  const showExportImportDialog = ref(false);
+  const dialogMode = ref<'export' | 'import' | 'share'>('export');
 
   const studyModes = computed(() => [
     {
@@ -73,6 +76,16 @@
     router.push(`/card-sets/${route.params.id}/${mode}`);
   };
 
+  const openExportDialog = () => {
+    dialogMode.value = 'export';
+    showExportImportDialog.value = true;
+  };
+
+  const openShareDialog = () => {
+    dialogMode.value = 'share';
+    showExportImportDialog.value = true;
+  };
+
   onMounted(() => {
     loadCardSet();
   });
@@ -92,7 +105,25 @@
           class="mb-4"
           @click="router.push('/card-sets')"
         />
-        <h1 class="mb-2 text-3xl font-bold">{{ cardSet.title }}</h1>
+        <div class="flex items-start justify-between gap-4 mb-2">
+          <h1 class="text-3xl font-bold">{{ cardSet.title }}</h1>
+          <div class="flex gap-2">
+            <Button
+              icon="pi pi-share-alt"
+              :label="t('cardSets.share')"
+              severity="info"
+              outlined
+              @click="openShareDialog"
+            />
+            <Button
+              icon="pi pi-download"
+              :label="t('cardSets.export')"
+              severity="secondary"
+              outlined
+              @click="openExportDialog"
+            />
+          </div>
+        </div>
         <p v-if="cardSet.description" class="text-gray-600">
           {{ cardSet.description }}
         </p>
@@ -126,4 +157,10 @@
       </div>
     </div>
   </div>
+
+  <ExportImportDialog
+    v-model:visible="showExportImportDialog"
+    :card-set-id="cardSet?.id"
+    :mode="dialogMode"
+  />
 </template>

@@ -148,6 +148,99 @@ export const useCardSetStore = defineStore('cardset', () => {
     }
   };
 
+  // Export cardset as JSON
+  const exportCardSet = (id: string): string => {
+    const cardSet = getCardSetById(id);
+    if (!cardSet) {
+      throw new Error('Card set not found');
+    }
+    return JSON.stringify(cardSet, null, 2);
+  };
+
+  // Export all cardsets as JSON
+  const exportAllCardSets = (): string => {
+    return JSON.stringify(cardSets.value, null, 2);
+  };
+
+  // Import cardset from JSON
+  const importCardSet = async (jsonString: string): Promise<ICardSet> => {
+    try {
+      const cardSet = JSON.parse(jsonString) as ICardSet;
+      
+      // Validate the structure
+      if (!cardSet.title || !cardSet.cards || !Array.isArray(cardSet.cards)) {
+        throw new Error('Invalid card set format');
+      }
+
+      // Create a new cardset with the imported data
+      const newCardSet = await addCardSet({
+        title: cardSet.title + ' (Imported)',
+        description: cardSet.description || '',
+        cards: cardSet.cards.map((card) => ({
+          terminology: card.terminology,
+          define: card.define,
+        })),
+      });
+
+      return newCardSet;
+    } catch (err: any) {
+      console.error('Failed to import card set:', err);
+      throw new Error('Invalid JSON format or card set structure');
+    }
+  };
+
+  // Generate shareable link for a cardset
+  const generateShareLink = (id: string): string => {
+    const cardSet = getCardSetById(id);
+    if (!cardSet) {
+      throw new Error('Card set not found');
+    }
+
+    // Create a simplified version without timestamps and user_id
+    const shareData = {
+      title: cardSet.title,
+      description: cardSet.description,
+      cards: cardSet.cards.map((card) => ({
+        terminology: card.terminology,
+        define: card.define,
+      })),
+    };
+
+    // Encode to base64
+    const jsonString = JSON.stringify(shareData);
+    const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+    
+    // Generate URL with the base64 encoded data
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/import-shared?data=${base64}`;
+  };
+
+  // Import from shared link data
+  const importFromShareLink = async (base64Data: string): Promise<ICardSet> => {
+    try {
+      // Decode from base64
+      const jsonString = decodeURIComponent(escape(atob(base64Data)));
+      const shareData = JSON.parse(jsonString);
+
+      // Validate the structure
+      if (!shareData.title || !shareData.cards || !Array.isArray(shareData.cards)) {
+        throw new Error('Invalid shared data format');
+      }
+
+      // Create a new cardset with the shared data
+      const newCardSet = await addCardSet({
+        title: shareData.title,
+        description: shareData.description || '',
+        cards: shareData.cards,
+      });
+
+      return newCardSet;
+    } catch (err: any) {
+      console.error('Failed to import from share link:', err);
+      throw new Error('Invalid share link or data format');
+    }
+  };
+
   return {
     cardSets,
     loading,
@@ -161,5 +254,10 @@ export const useCardSetStore = defineStore('cardset', () => {
     updateCardSet,
     deleteCardSet,
     initializeSampleData,
+    exportCardSet,
+    exportAllCardSets,
+    importCardSet,
+    generateShareLink,
+    importFromShareLink,
   };
 });

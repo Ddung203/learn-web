@@ -27,6 +27,28 @@ pnpm preview
 - **Import nhiều**: Nhập hàng loạt thẻ từ clipboard
 - **Xóa bộ thẻ**: Xóa bộ thẻ với xác nhận
 - **Tự động lưu**: Dữ liệu được lưu tự động vào Local Storage
+- **Export/Import JSON**: Xuất và nhập bộ thẻ dưới dạng file JSON
+- **Chia sẻ qua link**: Tạo link để chia sẻ bộ thẻ với người khác
+
+**Cách sử dụng Export/Import:**
+1. **Export bộ thẻ**:
+   - Từ danh sách bộ thẻ hoặc trang chi tiết, click nút "Xuất"
+   - File JSON sẽ được tải xuống tự động
+2. **Import bộ thẻ**:
+   - Click nút "Nhập" trên trang danh sách bộ thẻ
+   - Chọn file JSON hoặc dán nội dung JSON
+   - Bộ thẻ sẽ được thêm với hậu tố "(Imported)"
+
+**Cách sử dụng Chia sẻ:**
+1. **Tạo link chia sẻ**:
+   - Từ danh sách bộ thẻ hoặc trang chi tiết, click nút "Chia sẻ"
+   - Link sẽ được tạo tự động với dữ liệu mã hóa base64
+   - Click "Sao chép link" để copy vào clipboard
+2. **Nhận bộ thẻ từ link**:
+   - Mở link chia sẻ trong trình duyệt
+   - Xem trước thông tin bộ thẻ
+   - Click "Nhập" để thêm vào bộ thẻ của bạn
+   - Bộ thẻ sẽ được lưu tự động
 
 ### 2. 🎴 Chế Độ Flashcards
 - Lật thẻ với hiệu ứng 3D
@@ -236,16 +258,17 @@ src/
 - Adaptive layouts
 
 ## 🔮 Future Enhancements
-- [ ] Thống kê học tập (progress tracking)
+- [x] Thống kê học tập (progress tracking) - **Completed (Beta)**
+- [x] Export/Import bộ thẻ (JSON) - **Completed**
+- [x] Chia sẻ bộ thẻ qua link - **Completed**
 - [ ] Spaced repetition algorithm (SM-2)
-- [ ] Export/Import bộ thẻ (JSON, CSV)
-- [ ] Chia sẻ bộ thẻ qua link
 - [ ] Dark mode
 - [ ] Audio pronunciation
 - [ ] Image support cho thẻ
 - [ ] Categories và tags
 - [ ] Search và filter
 - [ ] Study streaks và achievements
+- [ ] Export to CSV format
 
 ## 🐛 Known Issues
 - None at the moment

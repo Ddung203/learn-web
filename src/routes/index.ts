@@ -64,6 +64,16 @@ const routes: AppRouteRecord[] = [
     },
   },
   {
+    path: '/import-shared',
+    name: 'import-shared',
+    component: () => import('../views/CardSets/ImportSharedView.vue'),
+    meta: {
+      requiredAuth: true,
+      layout: true,
+      title: 'Nhập bộ thẻ từ link chia sẻ',
+    },
+  },
+  {
     path: '/card-sets/:id/flashcards',
     name: 'study-flashcards',
     component: () => import('../views/StudyModes/FlashcardsView.vue'),
