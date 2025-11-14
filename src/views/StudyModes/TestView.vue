@@ -13,6 +13,8 @@
     options: string[];
     correctAnswer: string;
     userAnswer?: string;
+    type: 'multiple-choice' | 'write';
+    questionText: string;
   }
 
   const route = useRoute();
@@ -46,9 +48,13 @@
   });
 
   const score = computed(() => {
-    const correct = questions.value.filter(
-      (q) => q.userAnswer === q.correctAnswer
-    ).length;
+    const correct = questions.value.filter((q) => {
+      if (q.type === 'write') {
+        return q.userAnswer && checkWriteAnswer(q.userAnswer, q.correctAnswer);
+      } else {
+        return q.userAnswer === q.correctAnswer;
+      }
+    }).length;
     return {
       correct,
       total: questions.value.length,
@@ -77,18 +83,31 @@
     }
 
     const shuffledCards = shuffleArray(cardSet.value.cards);
-    questions.value = shuffledCards.map((card) => {
-      const otherCards = cardSet.value!.cards.filter((c) => c.id !== card.id);
-      const wrongOptions = shuffleArray(otherCards)
-        .slice(0, 3)
-        .map((c) => c.define);
+    questions.value = shuffledCards.map((card, index) => {
+      // Randomly choose question type (50% multiple choice, 50% write)
+      const questionType = Math.random() < 0.5 ? 'multiple-choice' : 'write';
+      
+      // Randomly choose direction (50% term->def, 50% def->term)
+      const isTermToDefDirection = Math.random() < 0.5;
+      
+      const questionText = isTermToDefDirection ? card.terminology : card.define;
+      const correctAnswer = isTermToDefDirection ? card.define : card.terminology;
 
-      const allOptions = shuffleArray([card.define, ...wrongOptions]);
+      let options: string[] = [];
+      if (questionType === 'multiple-choice') {
+        const otherCards = cardSet.value!.cards.filter((c) => c.id !== card.id);
+        const wrongOptions = shuffleArray(otherCards)
+          .slice(0, 3)
+          .map((c) => isTermToDefDirection ? c.define : c.terminology);
+        options = shuffleArray([correctAnswer, ...wrongOptions]);
+      }
 
       return {
         card,
-        options: allOptions,
-        correctAnswer: card.define,
+        options,
+        correctAnswer,
+        type: questionType,
+        questionText,
       };
     });
 
@@ -101,10 +120,41 @@
     }
   };
 
+  const normalizeString = (str: string): string => {
+    return str
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
+  const checkWriteAnswer = (userAnswer: string, correctAnswer: string): boolean => {
+    return normalizeString(userAnswer) === normalizeString(correctAnswer);
+  };
+
   const submitAnswer = () => {
-    if (currentQuestion.value && currentQuestion.value.userAnswer) {
-      isSubmitted.value = true;
+    if (!currentQuestion.value) return;
+    
+    if (currentQuestion.value.type === 'write') {
+      // For write questions, check if answer is not empty
+      if (!currentQuestion.value.userAnswer?.trim()) return;
+      
+      // Validate the written answer
+      const isCorrect = checkWriteAnswer(
+        currentQuestion.value.userAnswer,
+        currentQuestion.value.correctAnswer
+      );
+      
+      // Store the result for display purposes
+      if (!isCorrect) {
+        // Keep the user's answer but mark it as incorrect by comparing later
+      }
+    } else {
+      // For multiple choice, just check if an answer is selected
+      if (!currentQuestion.value.userAnswer) return;
     }
+    
+    isSubmitted.value = true;
   };
 
   const recordStudySession = async () => {
@@ -117,7 +167,9 @@
       end_time: new Date(endTime.value).toISOString(),
       attempts: questions.value.map((q) => ({
         card_id: q.card.id,
-        correct: q.userAnswer === q.correctAnswer,
+        correct: q.type === 'write' 
+          ? (q.userAnswer ? checkWriteAnswer(q.userAnswer, q.correctAnswer) : false)
+          : q.userAnswer === q.correctAnswer,
         time_spent: Math.round(
           (endTime.value - startTime.value) / questions.value.length / 1000
         ),
@@ -157,6 +209,15 @@
   const goBack = () => {
     router.push(`/card-sets/${route.params.id}`);
   };
+
+  const isWriteAnswerCorrect = computed(() => {
+    if (!currentQuestion.value || currentQuestion.value.type !== 'write') return false;
+    if (!currentQuestion.value.userAnswer) return false;
+    return checkWriteAnswer(
+      currentQuestion.value.userAnswer,
+      currentQuestion.value.correctAnswer
+    );
+  });
 
   const getOptionClass = (option: string) => {
     if (!currentQuestion.value) return 'border-gray-300';
@@ -202,8 +263,12 @@
 
   // Keyboard shortcuts
   const handleKeyDown = (event: KeyboardEvent) => {
+    // Don't handle shortcuts if user is typing in an input field
+    const target = event.target as HTMLElement;
+    const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+    
     if (!currentQuestion.value || showResults.value) {
-      if (showResults.value) {
+      if (showResults.value && !isTyping) {
         if (event.key === 'r' || event.key === 'R') {
           event.preventDefault();
           restart();
@@ -215,37 +280,53 @@
       return;
     }
 
-    const optionMap: { [key: string]: number } = {
-      '1': 0,
-      a: 0,
-      A: 0,
-      '2': 1,
-      b: 1,
-      B: 1,
-      '3': 2,
-      c: 2,
-      C: 2,
-      '4': 3,
-      d: 3,
-      D: 3,
-    };
+    // For write questions, only handle Enter (when not typing) and Escape
+    if (currentQuestion.value.type === 'write') {
+      if (event.key === 'Escape' && !isTyping) {
+        event.preventDefault();
+        goBack();
+      }
+      // Enter is handled by the input field itself via @keypress.enter
+      return;
+    }
 
-    if (event.key in optionMap && !isSubmitted.value) {
-      event.preventDefault();
-      const index = optionMap[event.key];
-      if (index < currentQuestion.value.options.length) {
-        selectAnswer(currentQuestion.value.options[index]);
+    // For multiple choice questions, handle keyboard shortcuts only when not typing
+    if (currentQuestion.value.type === 'multiple-choice' && !isTyping) {
+      const optionMap: { [key: string]: number } = {
+        '1': 0,
+        a: 0,
+        A: 0,
+        '2': 1,
+        b: 1,
+        B: 1,
+        '3': 2,
+        c: 2,
+        C: 2,
+        '4': 3,
+        d: 3,
+        D: 3,
+      };
+
+      if (event.key in optionMap && !isSubmitted.value) {
+        event.preventDefault();
+        const index = optionMap[event.key];
+        if (index < currentQuestion.value.options.length) {
+          selectAnswer(currentQuestion.value.options[index]);
+        }
+        return;
       }
-    } else if (event.key === 'Enter') {
-      event.preventDefault();
-      if (!isSubmitted.value) {
-        submitAnswer();
-      } else {
-        nextQuestion();
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (!isSubmitted.value) {
+          submitAnswer();
+        } else {
+          nextQuestion();
+        }
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        goBack();
       }
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      goBack();
     }
   };
 
@@ -320,15 +401,29 @@
         <Card class="mb-6">
           <template #content>
             <div>
-              <div class="mb-3 text-sm tracking-wide text-gray-500 uppercase">
-                {{ t('studyModes.test.whatIsDefinition') }}
+              <!-- Question Type Badge -->
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-sm tracking-wide text-gray-500 uppercase">
+                  {{ currentQuestion.type === 'multiple-choice' 
+                    ? t('studyModes.test.multipleChoice') 
+                    : t('studyModes.test.writeAnswer') }}
+                </div>
+                <span 
+                  class="px-2 py-1 text-xs font-semibold rounded"
+                  :class="currentQuestion.type === 'multiple-choice' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'bg-purple-100 text-purple-700'"
+                >
+                  {{ currentQuestion.type === 'multiple-choice' ? 'A/B/C/D' : 'Tự luận' }}
+                </span>
               </div>
+              
               <div class="mb-6 text-2xl font-semibold text-gray-900">
-                {{ currentQuestion.card.terminology }}
+                {{ currentQuestion.questionText }}
               </div>
 
-              <!-- Options -->
-              <div class="space-y-3">
+              <!-- Multiple Choice Options -->
+              <div v-if="currentQuestion.type === 'multiple-choice'" class="space-y-3">
                 <div
                   v-for="(option, index) in currentQuestion.options"
                   :key="index"
@@ -362,6 +457,48 @@
                       "
                       class="text-xl text-red-500 pi pi-times-circle"
                     ></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Write Input -->
+              <div v-else>
+                <InputText
+                  v-model="currentQuestion.userAnswer"
+                  :placeholder="t('studyModes.test.typePlaceholder')"
+                  :disabled="isSubmitted"
+                  class="w-full p-4 text-lg mb-4"
+                  @keypress.enter="!isSubmitted && submitAnswer()"
+                />
+
+                <!-- Feedback for Write Questions -->
+                <div v-if="isSubmitted" class="mb-4">
+                  <div
+                    v-if="isWriteAnswerCorrect"
+                    class="p-4 border-2 border-green-500 rounded-lg bg-green-50"
+                  >
+                    <div class="flex items-center gap-2 text-green-700">
+                      <i class="text-2xl pi pi-check-circle"></i>
+                      <span class="text-lg font-semibold">{{
+                        t('studyModes.test.correct')
+                      }}</span>
+                    </div>
+                  </div>
+                  <div v-else class="p-4 border-2 border-red-500 rounded-lg bg-red-50">
+                    <div class="flex items-center gap-2 mb-2 text-red-700">
+                      <i class="text-2xl pi pi-times-circle"></i>
+                      <span class="text-lg font-semibold">{{
+                        t('studyModes.test.incorrect')
+                      }}</span>
+                    </div>
+                    <div class="mb-2 text-sm text-gray-700">
+                      <span class="font-medium">{{ t('studyModes.test.yourAnswer') }}:</span>
+                      <span class="ml-2 line-through">{{ currentQuestion.userAnswer }}</span>
+                    </div>
+                    <div class="text-sm">
+                      <span class="font-medium">{{ t('studyModes.test.correctAnswer') }}:</span>
+                      <span class="ml-2 font-semibold text-green-700">{{ currentQuestion.correctAnswer }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -451,23 +588,39 @@
                     class="p-3 text-sm border rounded"
                     :class="{
                       'border-green-300 bg-green-50':
-                        question.userAnswer === question.correctAnswer,
+                        question.type === 'write' 
+                          ? (question.userAnswer && checkWriteAnswer(question.userAnswer, question.correctAnswer))
+                          : question.userAnswer === question.correctAnswer,
                       'border-red-300 bg-red-50':
-                        question.userAnswer !== question.correctAnswer,
+                        question.type === 'write'
+                          ? !(question.userAnswer && checkWriteAnswer(question.userAnswer, question.correctAnswer))
+                          : question.userAnswer !== question.correctAnswer,
                     }"
                   >
                     <div class="flex items-start gap-2">
                       <i
                         :class="[
                           'pi text-sm mt-0.5',
-                          question.userAnswer === question.correctAnswer
+                          (question.type === 'write' 
+                            ? (question.userAnswer && checkWriteAnswer(question.userAnswer, question.correctAnswer))
+                            : question.userAnswer === question.correctAnswer)
                             ? 'pi-check-circle text-green-500'
                             : 'pi-times-circle text-red-500',
                         ]"
                       ></i>
                       <div class="flex-1 min-w-0">
-                        <div class="font-semibold truncate">
-                          {{ question.card.terminology }}
+                        <div class="flex items-center gap-2 mb-1">
+                          <span class="font-semibold truncate">
+                            {{ question.questionText }}
+                          </span>
+                          <span 
+                            class="px-1.5 py-0.5 text-xs font-semibold rounded shrink-0"
+                            :class="question.type === 'multiple-choice' 
+                              ? 'bg-blue-100 text-blue-700' 
+                              : 'bg-purple-100 text-purple-700'"
+                          >
+                            {{ question.type === 'multiple-choice' ? 'MC' : 'W' }}
+                          </span>
                         </div>
                         <div class="text-xs text-gray-600 truncate">
                           {{
@@ -475,7 +628,9 @@
                           }}
                         </div>
                         <div
-                          v-if="question.userAnswer !== question.correctAnswer"
+                          v-if="!(question.type === 'write' 
+                            ? (question.userAnswer && checkWriteAnswer(question.userAnswer, question.correctAnswer))
+                            : question.userAnswer === question.correctAnswer)"
                           class="text-xs text-green-700 truncate"
                         >
                           ✓ {{ question.correctAnswer }}

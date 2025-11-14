@@ -16,6 +16,8 @@
     attempts: number;
   }
 
+  type StudyDirection = 'term-to-def' | 'def-to-term';
+
   const route = useRoute();
   const router = useRouter();
   const toast = useToast();
@@ -30,6 +32,8 @@
   const startTime = ref<number>(0);
   const endTime = ref<number>(0);
   const inputRef = ref<any>(null);
+  const studyDirection = ref<StudyDirection>('term-to-def');
+  const showDirectionDialog = ref(false);
 
   const currentQuestion = computed(() => {
     if (questions.value.length === 0) return null;
@@ -107,9 +111,12 @@
       return;
 
     currentQuestion.value.attempts++;
+    const correctAnswer = studyDirection.value === 'term-to-def' 
+      ? currentQuestion.value.card.define 
+      : currentQuestion.value.card.terminology;
     currentQuestion.value.isCorrect = checkAnswer(
       currentQuestion.value.userAnswer,
-      currentQuestion.value.card.define
+      correctAnswer
     );
     currentQuestion.value.isSubmitted = true;
   };
@@ -153,6 +160,12 @@
   };
 
   const restart = () => {
+    showDirectionDialog.value = true;
+  };
+
+  const startWithDirection = (direction: StudyDirection) => {
+    studyDirection.value = direction;
+    showDirectionDialog.value = false;
     generateQuestions();
     currentQuestionIndex.value = 0;
     showResults.value = false;
@@ -207,7 +220,11 @@
 
   // Keyboard shortcuts
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (showResults.value) {
+    // Don't handle shortcuts if user is typing in an input field
+    const target = event.target as HTMLElement;
+    const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+
+    if (showResults.value && !isTyping) {
       if (event.key === 'r' || event.key === 'R') {
         event.preventDefault();
         restart();
@@ -215,6 +232,12 @@
         event.preventDefault();
         goBack();
       }
+      return;
+    }
+
+    // Only handle keyboard shortcuts when not typing in input field
+    if (isTyping) {
+      // Enter is handled by the input field itself via @keypress
       return;
     }
 
@@ -233,6 +256,7 @@
 
   onMounted(() => {
     loadCardSet();
+    showDirectionDialog.value = true;
     window.addEventListener('keydown', handleKeyDown);
   });
 
@@ -303,10 +327,10 @@
           <template #content>
             <div>
               <div class="mb-3 text-sm tracking-wide text-gray-500 uppercase">
-                {{ t('studyModes.write.typeDefinition') }}
+                {{ studyDirection === 'term-to-def' ? t('studyModes.write.typeDefinition') : t('studyModes.write.typeTerminology') }}
               </div>
               <div class="mb-6 text-3xl font-semibold text-gray-900">
-                {{ currentQuestion.card.terminology }}
+                {{ studyDirection === 'term-to-def' ? currentQuestion.card.terminology : currentQuestion.card.define }}
               </div>
 
               <!-- Input -->
@@ -368,7 +392,7 @@
                       >{{ t('studyModes.write.correctAnswer') }}:</span
                     >
                     <span class="ml-2 font-semibold">{{
-                      currentQuestion.card.define
+                      studyDirection === 'term-to-def' ? currentQuestion.card.define : currentQuestion.card.terminology
                     }}</span>
                   </div>
                 </div>
@@ -523,5 +547,50 @@
         </Card>
       </div>
     </div>
+
+    <!-- Direction Selection Dialog -->
+    <Dialog
+      v-model:visible="showDirectionDialog"
+      :header="t('studyModes.write.selectDirection')"
+      :modal="true"
+      :closable="false"
+      :draggable="false"
+      class="w-full max-w-md"
+    >
+      <div class="space-y-3">
+        <div
+          class="p-4 transition-all border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50"
+          @click="startWithDirection('term-to-def')"
+        >
+          <div class="flex items-center gap-3">
+            <i class="text-2xl text-blue-500 pi pi-arrow-right"></i>
+            <div>
+              <div class="font-semibold">
+                {{ t('studyModes.write.termToDefinition') }}
+              </div>
+              <div class="text-sm text-gray-600">
+                {{ t('studyModes.write.termToDefinitionDesc') }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="p-4 transition-all border-2 border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50"
+          @click="startWithDirection('def-to-term')"
+        >
+          <div class="flex items-center gap-3">
+            <i class="text-2xl text-purple-500 pi pi-arrow-left"></i>
+            <div>
+              <div class="font-semibold">
+                {{ t('studyModes.write.definitionToTerm') }}
+              </div>
+              <div class="text-sm text-gray-600">
+                {{ t('studyModes.write.definitionToTermDesc') }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
