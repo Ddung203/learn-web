@@ -22,12 +22,10 @@
   const formData = reactive({
     title: '',
     description: '',
-    data: [
-      { terminology: '', define: '' },
-      { terminology: '', define: '' },
-      { terminology: '', define: '' },
-      { terminology: '', define: '' },
-    ] as Array<{ terminology: string; define: string }>,
+    data: [{ terminology: '', define: '' }] as Array<{
+      terminology: string;
+      define: string;
+    }>,
   });
 
   // Thêm mới 1 thẻ

@@ -62,7 +62,7 @@ export default {
   },
   studyModule: {
     title: 'Tạo một học phần mới',
-    createButton: 'Tạo',
+    createButton: 'Lưu lại',
     addCard: 'Thêm thẻ',
     importMany: 'Nhập nhiều',
     terminology: 'Thuật ngữ',
