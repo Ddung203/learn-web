@@ -65,7 +65,12 @@ func SetupRoutes(router *gin.Engine, db *mongo.Database, cfg *config.Config) {
 			statistics.GET("", statisticsController.GetUserStatistics)
 			statistics.GET("/cardsets/:id", statisticsController.GetCardSetStatistics)
 		}
+
+		// Image search
+		imageController := controllers.NewImageController()
+		protected.GET("/images/search", imageController.SearchImages)
 	}
+
 }
 
 func StartServer(router *gin.Engine, port string) *http.Server {

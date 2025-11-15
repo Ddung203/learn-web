@@ -2,6 +2,7 @@ export interface ICardSetCard {
   id: string;
   terminology: string;
   define: string;
+  image_url?: string;
 }
 
 export interface ICardSet {

@@ -704,6 +704,16 @@
                 ></i>
                 {{ t('studyModes.learn.defineThis') }}
               </div>
+              
+              <!-- Image if available -->
+              <div v-if="currentCard.card.image_url" class="mb-4 flex justify-center">
+                <img
+                  :src="currentCard.card.image_url"
+                  :alt="currentCard.card.terminology"
+                  class="max-h-64 rounded-lg border-2 border-gray-200 object-contain"
+                />
+              </div>
+              
               <div class="mb-6 text-3xl font-semibold text-gray-900">
                 {{ currentCard.card.terminology }}
               </div>

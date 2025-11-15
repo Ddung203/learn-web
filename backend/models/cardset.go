@@ -10,6 +10,7 @@ type CardSetCard struct {
 	ID          string `json:"id" bson:"id"`
 	Terminology string `json:"terminology" bson:"terminology" binding:"required"`
 	Define      string `json:"define" bson:"define" binding:"required"`
+	ImageURL    string `json:"image_url,omitempty" bson:"image_url,omitempty"`
 }
 
 type StudyProgress struct {

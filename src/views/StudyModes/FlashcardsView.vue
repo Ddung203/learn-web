@@ -449,6 +449,16 @@
                       : t('studyModule.definition')
                   }}
                 </div>
+                
+                <!-- Image if available (optional - only show with terminology) -->
+                <div v-if="showingTerm && currentCard.image_url" class="mb-4 flex justify-center">
+                  <img
+                    :src="currentCard.image_url"
+                    :alt="currentCard.terminology"
+                    class="max-h-48 rounded-lg border-2 border-gray-200 object-contain"
+                  />
+                </div>
+                
                 <div class="text-3xl font-semibold break-words">
                   {{
                     showingTerm ? currentCard.terminology : currentCard.define

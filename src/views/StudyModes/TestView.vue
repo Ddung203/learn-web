@@ -418,8 +418,19 @@
                 </span>
               </div>
               
-              <div class="mb-6 text-2xl font-semibold text-gray-900">
-                {{ currentQuestion.questionText }}
+              <div class="mb-6">
+                <!-- Image if available -->
+                <div v-if="currentQuestion.card.image_url" class="mb-4 flex justify-center">
+                  <img
+                    :src="currentQuestion.card.image_url"
+                    :alt="currentQuestion.questionText"
+                    class="max-h-64 rounded-lg border-2 border-gray-200 object-contain"
+                  />
+                </div>
+                
+                <div class="text-2xl font-semibold text-gray-900">
+                  {{ currentQuestion.questionText }}
+                </div>
               </div>
 
               <!-- Multiple Choice Options -->

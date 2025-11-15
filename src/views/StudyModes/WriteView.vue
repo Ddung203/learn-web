@@ -329,6 +329,16 @@
               <div class="mb-3 text-sm tracking-wide text-gray-500 uppercase">
                 {{ studyDirection === 'term-to-def' ? t('studyModes.write.typeDefinition') : t('studyModes.write.typeTerminology') }}
               </div>
+              
+              <!-- Image if available -->
+              <div v-if="currentQuestion.card.image_url" class="mb-4 flex justify-center">
+                <img
+                  :src="currentQuestion.card.image_url"
+                  :alt="studyDirection === 'term-to-def' ? currentQuestion.card.terminology : currentQuestion.card.define"
+                  class="max-h-64 rounded-lg border-2 border-gray-200 object-contain"
+                />
+              </div>
+              
               <div class="mb-6 text-3xl font-semibold text-gray-900">
                 {{ studyDirection === 'term-to-def' ? currentQuestion.card.terminology : currentQuestion.card.define }}
               </div>

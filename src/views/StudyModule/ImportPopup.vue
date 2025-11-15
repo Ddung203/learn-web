@@ -10,11 +10,11 @@
   }>();
   const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void;
-    (e: 'import', cards: Array<{ terminology: string; define: string }>): void;
+    (e: 'import', cards: Array<{ terminology: string; define: string; image_url?: string }>): void;
   }>();
 
   const inputData = ref('');
-  const parsedCards = ref<Array<{ terminology: string; define: string }>>([]);
+  const parsedCards = ref<Array<{ terminology: string; define: string; image_url?: string }>>([]);
 
   // Parse input data: each line should be "Term, Definition"
   const parseInputData = () => {
@@ -31,7 +31,7 @@
           .map((part) => part.trim());
         const define = rest.join(',');
 
-        return { terminology, define };
+        return { terminology, define, image_url: '' };
       })
       .filter((card) => card.terminology && card.define);
   };
@@ -41,7 +41,7 @@
   // Update card data
   const updateCard = (
     index: number,
-    field: 'terminology' | 'define',
+    field: 'terminology' | 'define' | 'image_url',
     value: string
   ) => {
     if (parsedCards.value[index]) {

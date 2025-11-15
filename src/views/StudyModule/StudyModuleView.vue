@@ -22,15 +22,16 @@
   const formData = reactive({
     title: '',
     description: '',
-    data: [{ terminology: '', define: '' }] as Array<{
+    data: [{ terminology: '', define: '', image_url: '' }] as Array<{
       terminology: string;
       define: string;
+      image_url?: string;
     }>,
   });
 
   // Thêm mới 1 thẻ
   const addItem = () => {
-    formData.data.push({ terminology: '', define: '' });
+    formData.data.push({ terminology: '', define: '', image_url: '' });
   };
   const addItems = () => {
     isShowPopup.value = true;
@@ -38,9 +39,9 @@
 
   // Handle imported cards from popup
   const handleImportCards = (
-    cards: Array<{ terminology: string; define: string }>
+    cards: Array<{ terminology: string; define: string; image_url?: string }>
   ) => {
-    formData.data.push(...cards);
+    formData.data.push(...cards.map(card => ({ ...card, image_url: card.image_url || '' })));
     toast.add({
       severity: 'success',
       summary: t('common.success'),
@@ -52,7 +53,7 @@
   // Cập nhật dữ liệu của 1 thẻ
   const updateItem = (
     index: number,
-    field: 'terminology' | 'define',
+    field: 'terminology' | 'define' | 'image_url',
     value: string
   ) => {
     formData.data[index][field] = value;
