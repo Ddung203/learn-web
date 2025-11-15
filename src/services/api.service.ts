@@ -2,6 +2,7 @@ import axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
   type AxiosResponse,
+  type InternalAxiosRequestConfig,
 } from 'axios';
 
 const API_BASE_URL =
@@ -9,6 +10,11 @@ const API_BASE_URL =
 
 class ApiService {
   private axiosInstance: AxiosInstance;
+  private isRefreshing = false;
+  private failedQueue: Array<{
+    resolve: (value?: any) => void;
+    reject: (error?: any) => void;
+  }> = [];
 
   constructor() {
     this.axiosInstance = axios.create({
@@ -33,16 +39,84 @@ class ApiService {
     // Response interceptor for error handling
     this.axiosInstance.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid
-          this.removeToken();
-          // window.location.href = '/login';
-          throw { code: 401, ...error };
+      async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          if (this.isRefreshing) {
+            // Queue the request
+            return new Promise((resolve, reject) => {
+              this.failedQueue.push({ resolve, reject });
+            })
+              .then((token) => {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                return this.axiosInstance.request(originalRequest);
+              })
+              .catch((err) => Promise.reject(err));
+          }
+
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          const refreshToken = this.getRefreshToken();
+          if (!refreshToken) {
+            this.handleAuthFailure();
+            return Promise.reject(error);
+          }
+
+          try {
+            const response = await this.refreshAccessToken(refreshToken);
+            const { access_token, refresh_token } = response;
+
+            this.setToken(access_token);
+            this.setRefreshToken(refresh_token);
+
+            // Retry all queued requests
+            this.processQueue(null, access_token);
+
+            originalRequest.headers.Authorization = `Bearer ${access_token}`;
+            return this.axiosInstance.request(originalRequest);
+          } catch (refreshError) {
+            this.processQueue(refreshError, null);
+            this.handleAuthFailure();
+            return Promise.reject(refreshError);
+          } finally {
+            this.isRefreshing = false;
+          }
         }
+
         return Promise.reject(error);
       }
     );
+  }
+
+  private processQueue(error: any, token: string | null = null) {
+    this.failedQueue.forEach((prom) => {
+      if (error) {
+        prom.reject(error);
+      } else {
+        prom.resolve(token);
+      }
+    });
+
+    this.failedQueue = [];
+  }
+
+  private async refreshAccessToken(refreshToken: string) {
+    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+      refresh_token: refreshToken,
+    });
+    return response.data;
+  }
+
+  private handleAuthFailure() {
+    this.removeToken();
+    this.removeRefreshToken();
+    
+    // Check if we're not already on the login page to avoid infinite loops
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
   }
 
   private getToken(): string | null {
@@ -55,6 +129,18 @@ class ApiService {
 
   private removeToken(): void {
     localStorage.removeItem('auth_token');
+  }
+
+  private getRefreshToken(): string | null {
+    return localStorage.getItem('refresh_token');
+  }
+
+  private setRefreshToken(token: string): void {
+    localStorage.setItem('refresh_token', token);
+  }
+
+  private removeRefreshToken(): void {
+    localStorage.removeItem('refresh_token');
   }
 
   // Generic request methods
@@ -105,12 +191,21 @@ class ApiService {
     this.setToken(token);
   }
 
+  setAuthRefreshToken(token: string): void {
+    this.setRefreshToken(token);
+  }
+
   clearAuthToken(): void {
     this.removeToken();
+    this.removeRefreshToken();
   }
 
   hasAuthToken(): boolean {
     return !!this.getToken();
+  }
+
+  getAuthRefreshToken(): string | null {
+    return this.getRefreshToken();
   }
 }
 

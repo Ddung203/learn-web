@@ -6,13 +6,14 @@ import (
 )
 
 type Config struct {
-	Port            string
-	Env             string
-	MongoDBURI      string
-	MongoDBDatabase string
-	JWTSecret       string
-	JWTExpiry       string
-	CORSOrigins     []string
+	Port                string
+	Env                 string
+	MongoDBURI          string
+	MongoDBDatabase     string
+	JWTSecret           string
+	JWTExpiry           string
+	RefreshTokenExpiry  string
+	CORSOrigins         []string
 }
 
 func LoadConfig() *Config {
@@ -23,13 +24,14 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		Port:            getEnv("PORT", "8080"),
-		Env:             getEnv("ENV", "development"),
-		MongoDBURI:      getEnv("MONGODB_URI", "mongodb://localhost:27017"),
-		MongoDBDatabase: getEnv("MONGODB_DATABASE", "learn_app"),
-		JWTSecret:       getEnv("JWT_SECRET", "your-secret-key"),
-		JWTExpiry:       getEnv("JWT_EXPIRY", "24h"),
-		CORSOrigins:     origins,
+		Port:               getEnv("PORT", "8080"),
+		Env:                getEnv("ENV", "development"),
+		MongoDBURI:         getEnv("MONGODB_URI", "mongodb://localhost:27017"),
+		MongoDBDatabase:    getEnv("MONGODB_DATABASE", "learn_app"),
+		JWTSecret:          getEnv("JWT_SECRET", "your-secret-key"),
+		JWTExpiry:          getEnv("JWT_EXPIRY", "1h"),
+		RefreshTokenExpiry: getEnv("REFRESH_TOKEN_EXPIRY", "720h"),
+		CORSOrigins:        origins,
 	}
 }
 

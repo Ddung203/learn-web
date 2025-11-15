@@ -87,9 +87,36 @@ func (ac *AuthController) Register(c *gin.Context) {
 		return
 	}
 
+	// Generate refresh token
+	refreshExpiry, _ := time.ParseDuration(ac.cfg.RefreshTokenExpiry)
+	refreshToken, err := utils.GenerateRefreshToken(
+		user.ID.Hex(),
+		ac.cfg.JWTSecret,
+		refreshExpiry,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+
+	// Store refresh token in database
+	refreshTokenCollection := ac.db.Collection("refresh_tokens")
+	refreshTokenDoc := models.RefreshToken{
+		UserID:    user.ID,
+		Token:     refreshToken,
+		ExpiresAt: time.Now().Add(refreshExpiry),
+		CreatedAt: time.Now(),
+	}
+	_, err = refreshTokenCollection.InsertOne(ctx, refreshTokenDoc)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store refresh token"})
+		return
+	}
+
 	c.JSON(http.StatusCreated, models.LoginResponse{
-		Token: token,
-		User:  user,
+		Token:        token,
+		RefreshToken: refreshToken,
+		User:         user,
 	})
 }
 
@@ -132,9 +159,36 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
+	// Generate refresh token
+	refreshExpiry, _ := time.ParseDuration(ac.cfg.RefreshTokenExpiry)
+	refreshToken, err := utils.GenerateRefreshToken(
+		user.ID.Hex(),
+		ac.cfg.JWTSecret,
+		refreshExpiry,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+
+	// Store refresh token in database
+	refreshTokenCollection := ac.db.Collection("refresh_tokens")
+	refreshTokenDoc := models.RefreshToken{
+		UserID:    user.ID,
+		Token:     refreshToken,
+		ExpiresAt: time.Now().Add(refreshExpiry),
+		CreatedAt: time.Now(),
+	}
+	_, err = refreshTokenCollection.InsertOne(ctx, refreshTokenDoc)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store refresh token"})
+		return
+	}
+
 	c.JSON(http.StatusOK, models.LoginResponse{
-		Token: token,
-		User:  user,
+		Token:        token,
+		RefreshToken: refreshToken,
+		User:         user,
 	})
 }
 
@@ -215,4 +269,142 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+func (ac *AuthController) RefreshToken(c *gin.Context) {
+	var req models.RefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate refresh token
+	claims, err := utils.ValidateRefreshToken(req.RefreshToken, ac.cfg.JWTSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+		return
+	}
+
+	// Check if refresh token exists in database and not expired
+	refreshTokenCollection := ac.db.Collection("refresh_tokens")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	userID, _ := primitive.ObjectIDFromHex(claims.UserID)
+	var storedToken models.RefreshToken
+	err = refreshTokenCollection.FindOne(ctx, bson.M{
+		"user_id": userID,
+		"token":   req.RefreshToken,
+		"expires_at": bson.M{
+			"$gt": time.Now(),
+		},
+	}).Decode(&storedToken)
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token not found or expired"})
+		return
+	}
+
+	// Get user info
+	usersCollection := ac.db.Collection("users")
+	var user models.User
+	err = usersCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Generate new access token
+	expiry, _ := time.ParseDuration(ac.cfg.JWTExpiry)
+	newAccessToken, err := utils.GenerateJWT(
+		user.ID.Hex(),
+		user.Email,
+		user.Username,
+		ac.cfg.JWTSecret,
+		expiry,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
+		return
+	}
+
+	// Generate new refresh token (sliding window)
+	refreshExpiry, _ := time.ParseDuration(ac.cfg.RefreshTokenExpiry)
+	newRefreshToken, err := utils.GenerateRefreshToken(
+		user.ID.Hex(),
+		ac.cfg.JWTSecret,
+		refreshExpiry,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+
+	// Delete old refresh token
+	_, err = refreshTokenCollection.DeleteOne(ctx, bson.M{"_id": storedToken.ID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete old refresh token"})
+		return
+	}
+
+	// Store new refresh token
+	newRefreshTokenDoc := models.RefreshToken{
+		UserID:    user.ID,
+		Token:     newRefreshToken,
+		ExpiresAt: time.Now().Add(refreshExpiry),
+		CreatedAt: time.Now(),
+	}
+	_, err = refreshTokenCollection.InsertOne(ctx, newRefreshTokenDoc)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store refresh token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.RefreshResponse{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	})
+}
+
+func (ac *AuthController) Logout(c *gin.Context) {
+	var req models.RefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Delete refresh token from database
+	refreshTokenCollection := ac.db.Collection("refresh_tokens")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := refreshTokenCollection.DeleteOne(ctx, bson.M{"token": req.RefreshToken})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to logout"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+}
+
+func (ac *AuthController) LogoutAll(c *gin.Context) {
+	userID := c.GetString("user_id")
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	// Delete all refresh tokens for this user
+	refreshTokenCollection := ac.db.Collection("refresh_tokens")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err = refreshTokenCollection.DeleteMany(ctx, bson.M{"user_id": objID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to logout from all devices"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out from all devices successfully"})
 }

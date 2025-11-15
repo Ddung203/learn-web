@@ -31,8 +31,9 @@ type RegisterRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
-	User  User   `json:"user"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
+	User         User   `json:"user"`
 }
 
 type UpdateProfileRequest struct {

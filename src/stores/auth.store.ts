@@ -72,10 +72,26 @@ export const useAuthStore = defineStore(
       }
     };
 
-    const logout = () => {
-      authService.logout();
-      user.value = null;
-      error.value = null;
+    const logout = async () => {
+      try {
+        await authService.logout();
+      } catch (err) {
+        console.error('Logout error:', err);
+      } finally {
+        user.value = null;
+        error.value = null;
+      }
+    };
+
+    const logoutAll = async () => {
+      try {
+        await authService.logoutAll();
+      } catch (err) {
+        console.error('Logout all error:', err);
+      } finally {
+        user.value = null;
+        error.value = null;
+      }
     };
 
     const loginOrRegister = async (credentials: ILoginRequest) => {
@@ -123,6 +139,7 @@ export const useAuthStore = defineStore(
       fetchProfile,
       updateProfile,
       logout,
+      logoutAll,
       isAuthenticated,
       initialize,
     };

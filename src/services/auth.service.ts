@@ -24,6 +24,7 @@ export interface IRegisterRequest {
 
 export interface ILoginResponse {
   token: string;
+  refresh_token: string;
   user: IUser;
 }
 
@@ -31,18 +32,21 @@ class AuthService {
   async login(credentials: ILoginRequest): Promise<ILoginResponse> {
     const response = await apiService.post<ILoginResponse>('/auth/login', credentials);
     apiService.setAuthToken(response.token);
+    apiService.setAuthRefreshToken(response.refresh_token);
     return response;
   }
 
   async loginOrRegister(credentials: ILoginRequest): Promise<ILoginResponse> {
     const response = await apiService.post<ILoginResponse>('/auth/login-or-register', credentials);
     apiService.setAuthToken(response.token);
+    apiService.setAuthRefreshToken(response.refresh_token);
     return response;
   }
 
   async register(data: IRegisterRequest): Promise<ILoginResponse> {
     const response = await apiService.post<ILoginResponse>('/auth/register', data);
     apiService.setAuthToken(response.token);
+    apiService.setAuthRefreshToken(response.refresh_token);
     return response;
   }
 
@@ -54,7 +58,24 @@ class AuthService {
     return await apiService.put<IUser>('/profile', data);
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
+    const refreshToken = apiService.getAuthRefreshToken();
+    if (refreshToken) {
+      try {
+        await apiService.post('/auth/logout', { refresh_token: refreshToken });
+      } catch (error) {
+        console.error('Failed to logout on server:', error);
+      }
+    }
+    apiService.clearAuthToken();
+  }
+
+  async logoutAll(): Promise<void> {
+    try {
+      await apiService.post('/auth/logout-all', {});
+    } catch (error) {
+      console.error('Failed to logout all devices:', error);
+    }
     apiService.clearAuthToken();
   }
 

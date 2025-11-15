@@ -33,6 +33,8 @@ func SetupRoutes(router *gin.Engine, db *mongo.Database, cfg *config.Config) {
 		auth.POST("/register", authController.Register)
 		auth.POST("/login", authController.Login)
 		auth.POST("/login-or-register", loginOrRegisterController.LoginOrRegister)
+		auth.POST("/refresh", authController.RefreshToken)
+		auth.POST("/logout", authController.Logout)
 	}
 
 	// Protected routes
@@ -42,6 +44,7 @@ func SetupRoutes(router *gin.Engine, db *mongo.Database, cfg *config.Config) {
 		// User profile
 		protected.GET("/profile", authController.GetProfile)
 		protected.PUT("/profile", authController.UpdateProfile)
+		protected.POST("/auth/logout-all", authController.LogoutAll)
 
 		// Card sets
 		cardSetController := controllers.NewCardSetController(db)

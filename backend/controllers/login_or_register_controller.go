@@ -61,9 +61,36 @@ func (lrc *LoginOrRegisterController) LoginOrRegister(c *gin.Context) {
 			return
 		}
 
+		// Generate refresh token
+		refreshExpiry, _ := time.ParseDuration(lrc.cfg.RefreshTokenExpiry)
+		refreshToken, err := utils.GenerateRefreshToken(
+			user.ID.Hex(),
+			lrc.cfg.JWTSecret,
+			refreshExpiry,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+			return
+		}
+
+		// Store refresh token in database
+		refreshTokenCollection := lrc.db.Collection("refresh_tokens")
+		refreshTokenDoc := models.RefreshToken{
+			UserID:    user.ID,
+			Token:     refreshToken,
+			ExpiresAt: time.Now().Add(refreshExpiry),
+			CreatedAt: time.Now(),
+		}
+		_, err = refreshTokenCollection.InsertOne(ctx, refreshTokenDoc)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store refresh token"})
+			return
+		}
+
 		c.JSON(http.StatusOK, models.LoginResponse{
-			Token: token,
-			User:  user,
+			Token:        token,
+			RefreshToken: refreshToken,
+			User:         user,
 		})
 		return
 	}
@@ -126,9 +153,36 @@ func (lrc *LoginOrRegisterController) LoginOrRegister(c *gin.Context) {
 			return
 		}
 
+		// Generate refresh token
+		refreshExpiry, _ := time.ParseDuration(lrc.cfg.RefreshTokenExpiry)
+		refreshToken, err := utils.GenerateRefreshToken(
+			newUser.ID.Hex(),
+			lrc.cfg.JWTSecret,
+			refreshExpiry,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+			return
+		}
+
+		// Store refresh token in database
+		refreshTokenCollection := lrc.db.Collection("refresh_tokens")
+		refreshTokenDoc := models.RefreshToken{
+			UserID:    newUser.ID,
+			Token:     refreshToken,
+			ExpiresAt: time.Now().Add(refreshExpiry),
+			CreatedAt: time.Now(),
+		}
+		_, err = refreshTokenCollection.InsertOne(ctx, refreshTokenDoc)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store refresh token"})
+			return
+		}
+
 		c.JSON(http.StatusCreated, models.LoginResponse{
-			Token: token,
-			User:  newUser,
+			Token:        token,
+			RefreshToken: refreshToken,
+			User:         newUser,
 		})
 		return
 	}
