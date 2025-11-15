@@ -14,7 +14,9 @@ import App from './App.vue';
 import { importPrimeVueComponents } from './libs';
 import appRouter from './routes';
 import i18n from './locales';
-import { useAuthStore } from './stores';
+import { useAuthStore, useCardSetStore } from './stores';
+import syncService from './services/sync.service';
+import indexedDBService from './services/indexeddb.service';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -28,6 +30,40 @@ app.use(appRouter);
 
 app.mount('#app');
 
-// Initialize auth store after mount
-const authStore = useAuthStore();
-authStore.initialize();
+// Initialize services and stores
+(async () => {
+  try {
+    // Initialize IndexedDB
+    await indexedDBService.init();
+    console.log('IndexedDB initialized');
+
+    // Initialize auth store
+    const authStore = useAuthStore();
+    await authStore.initialize();
+
+    // Initialize card set store
+    const cardSetStore = useCardSetStore();
+    await cardSetStore.initialize();
+    console.log('Stores initialized');
+
+    // Initialize sync service
+    await syncService.initialize();
+    console.log('Sync service initialized');
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            console.log('Service Worker registered:', registration);
+          })
+          .catch((error) => {
+            console.warn('Service Worker registration failed:', error);
+          });
+      });
+    }
+  } catch (error) {
+    console.error('Failed to initialize app:', error);
+  }
+})();
