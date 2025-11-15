@@ -566,7 +566,7 @@
                 <div
                   class="flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-50"
                 >
-                  <i class="text-2xl pi pi-clock text-indigo-600"></i>
+                  <i class="text-2xl text-indigo-600 pi pi-clock"></i>
                 </div>
                 <div>
                   <h3 class="text-3xl font-bold text-gray-900">
@@ -576,21 +576,6 @@
                     {{ t('statistics.totalStudyTime') || 'Total Study Time' }}
                   </p>
                 </div>
-              </div>
-              <div
-                class="flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-50"
-              >
-                <i class="text-sm pi pi-arrow-up text-emerald-600"></i>
-                <span class="text-sm font-semibold text-emerald-600"
-                  >{{
-                    Math.round(
-                      (overview.total_study_time /
-                        (overview.daily_stats?.[overview.daily_stats.length - 2]
-                          ?.time_spent || 1)) *
-                        100
-                    )
-                  }}%</span
-                >
               </div>
             </div>
           </div>
@@ -604,7 +589,7 @@
                 <div
                   class="flex items-center justify-center w-16 h-16 rounded-2xl bg-green-50"
                 >
-                  <i class="text-2xl pi pi-book text-green-600"></i>
+                  <i class="text-2xl text-green-600 pi pi-book"></i>
                 </div>
                 <div>
                   <h3 class="text-3xl font-bold text-gray-900">
@@ -635,7 +620,7 @@
                 <div
                   class="flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-50"
                 >
-                  <i class="text-2xl pi pi-check-circle text-purple-600"></i>
+                  <i class="text-2xl text-purple-600 pi pi-check-circle"></i>
                 </div>
                 <div>
                   <h3 class="text-3xl font-bold text-gray-900">
@@ -675,7 +660,7 @@
                 <div
                   class="flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-50"
                 >
-                  <i class="text-2xl pi pi-bolt text-orange-600"></i>
+                  <i class="text-2xl text-orange-600 pi pi-bolt"></i>
                 </div>
                 <div>
                   <h3 class="text-3xl font-bold text-gray-900">
@@ -685,36 +670,6 @@
                     {{ t('statistics.currentStreak') || 'Current Streak' }}
                   </p>
                 </div>
-              </div>
-              <div
-                class="flex items-center gap-1 px-3 py-1 rounded-lg"
-                :class="
-                  overview.current_streak >= overview.longest_streak / 2
-                    ? 'bg-emerald-50'
-                    : 'bg-gray-50'
-                "
-              >
-                <i
-                  class="text-sm pi"
-                  :class="
-                    overview.current_streak >= overview.longest_streak / 2
-                      ? 'pi-arrow-up text-emerald-600'
-                      : 'pi-arrow-down text-gray-600'
-                  "
-                ></i>
-                <span
-                  class="text-sm font-semibold"
-                  :class="
-                    overview.current_streak >= overview.longest_streak / 2
-                      ? 'text-emerald-600'
-                      : 'text-gray-600'
-                  "
-                  >{{
-                    Math.round(
-                      (overview.current_streak / overview.longest_streak) * 100
-                    )
-                  }}%</span
-                >
               </div>
             </div>
           </div>
@@ -1047,7 +1002,7 @@
                   >
                     <template #body="slotProps">
                       <ProgressBar
-                        :value="slotProps.data.accuracy"
+                        :value="Number(slotProps.data.accuracy.toFixed(1))"
                         :showValue="true"
                         :severity="getProgressBarColor(slotProps.data.accuracy)"
                         class="w-32"
