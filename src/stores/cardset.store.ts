@@ -241,6 +241,60 @@ export const useCardSetStore = defineStore('cardset', () => {
     }
   };
 
+  // Toggle publish status of a card set
+  const togglePublish = async (id: string) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const updatedCardSet = await cardSetService.togglePublish(id);
+      const index = cardSets.value.findIndex((cs) => cs.id === id);
+      if (index !== -1) {
+        cardSets.value[index] = updatedCardSet;
+      }
+      return updatedCardSet;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to toggle publish status';
+      console.error('Failed to toggle publish:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Fetch global (public) card sets
+  const globalCardSets = ref<ICardSet[]>([]);
+  const fetchGlobalCardSets = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      globalCardSets.value = await cardSetService.getGlobalCardSets();
+      return globalCardSets.value;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to fetch global card sets';
+      console.error('Failed to fetch global card sets:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Import a card set from global library
+  const importFromGlobal = async (id: string) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const newCardSet = await cardSetService.importFromGlobal(id);
+      cardSets.value.unshift(newCardSet);
+      return newCardSet;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Failed to import card set';
+      console.error('Failed to import from global:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     cardSets,
     loading,
@@ -259,5 +313,9 @@ export const useCardSetStore = defineStore('cardset', () => {
     importCardSet,
     generateShareLink,
     importFromShareLink,
+    togglePublish,
+    globalCardSets,
+    fetchGlobalCardSets,
+    importFromGlobal,
   };
 });

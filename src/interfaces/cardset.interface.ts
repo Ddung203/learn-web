@@ -13,6 +13,8 @@ export interface ICardSet {
   created_at: string;
   updated_at: string;
   user_id?: string;
+  is_public?: boolean;
+  download_count?: number;
 }
 
 export interface ICreateCardSetParams {

@@ -20,14 +20,16 @@ type StudyProgress struct {
 }
 
 type CardSet struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserID      primitive.ObjectID `json:"user_id" bson:"user_id"`
-	Title       string             `json:"title" bson:"title" binding:"required"`
-	Description string             `json:"description" bson:"description"`
-	Cards       []CardSetCard      `json:"cards" bson:"cards"`
-	Progress    StudyProgress      `json:"progress" bson:"progress"`
-	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
+	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	UserID        primitive.ObjectID `json:"user_id" bson:"user_id"`
+	Title         string             `json:"title" bson:"title" binding:"required"`
+	Description   string             `json:"description" bson:"description"`
+	Cards         []CardSetCard      `json:"cards" bson:"cards"`
+	Progress      StudyProgress      `json:"progress" bson:"progress"`
+	IsPublic      bool               `json:"is_public" bson:"is_public"`
+	DownloadCount int                `json:"download_count" bson:"download_count"`
+	CreatedAt     time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
 type CreateCardSetRequest struct {

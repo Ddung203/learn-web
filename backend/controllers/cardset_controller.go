@@ -123,8 +123,10 @@ func (csc *CardSetController) CreateCardSet(c *gin.Context) {
 			TimesStdied: 0,
 			Mastered:    0,
 		},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		IsPublic:      false,
+		DownloadCount: 0,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	cardSetsCollection := csc.db.Collection("cardsets")
@@ -250,4 +252,175 @@ func (csc *CardSetController) DeleteCardSet(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Card set deleted successfully"})
+}
+
+func (csc *CardSetController) TogglePublish(c *gin.Context) {
+	userID := c.GetString("user_id")
+	cardSetID := c.Param("id")
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	cardSetObjID, err := primitive.ObjectIDFromHex(cardSetID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid card set ID"})
+		return
+	}
+
+	cardSetsCollection := csc.db.Collection("cardsets")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Get current card set
+	var cardSet models.CardSet
+	err = cardSetsCollection.FindOne(ctx, bson.M{
+		"_id":     cardSetObjID,
+		"user_id": userObjID,
+	}).Decode(&cardSet)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Card set not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch card set"})
+		return
+	}
+
+	// Toggle is_public
+	newPublicStatus := !cardSet.IsPublic
+
+	update := bson.M{
+		"is_public":  newPublicStatus,
+		"updated_at": time.Now(),
+	}
+
+	_, err = cardSetsCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": cardSetObjID, "user_id": userObjID},
+		bson.M{"$set": update},
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card set"})
+		return
+	}
+
+	// Fetch updated card set
+	err = cardSetsCollection.FindOne(ctx, bson.M{"_id": cardSetObjID}).Decode(&cardSet)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated card set"})
+		return
+	}
+
+	c.JSON(http.StatusOK, cardSet)
+}
+
+func (csc *CardSetController) GetGlobalCardSets(c *gin.Context) {
+	cardSetsCollection := csc.db.Collection("cardsets")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	opts := options.Find().SetSort(bson.D{{Key: "download_count", Value: -1}, {Key: "created_at", Value: -1}})
+	cursor, err := cardSetsCollection.Find(ctx, bson.M{"is_public": true}, opts)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch global card sets"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var cardSets []models.CardSet
+	if err := cursor.All(ctx, &cardSets); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode card sets"})
+		return
+	}
+
+	if cardSets == nil {
+		cardSets = []models.CardSet{}
+	}
+
+	c.JSON(http.StatusOK, cardSets)
+}
+
+func (csc *CardSetController) ImportFromGlobal(c *gin.Context) {
+	userID := c.GetString("user_id")
+	cardSetID := c.Param("id")
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	cardSetObjID, err := primitive.ObjectIDFromHex(cardSetID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid card set ID"})
+		return
+	}
+
+	cardSetsCollection := csc.db.Collection("cardsets")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get the public card set
+	var sourceCardSet models.CardSet
+	err = cardSetsCollection.FindOne(ctx, bson.M{
+		"_id":       cardSetObjID,
+		"is_public": true,
+	}).Decode(&sourceCardSet)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Card set not found or not public"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch card set"})
+		return
+	}
+
+	// Generate new IDs for cards in the imported set
+	for i := range sourceCardSet.Cards {
+		sourceCardSet.Cards[i].ID = uuid.New().String()
+	}
+
+	// Create new card set for the user
+	newCardSet := models.CardSet{
+		UserID:      userObjID,
+		Title:       sourceCardSet.Title,
+		Description: sourceCardSet.Description,
+		Cards:       sourceCardSet.Cards,
+		Progress: models.StudyProgress{
+			TimesStdied: 0,
+			Mastered:    0,
+		},
+		IsPublic:      false,
+		DownloadCount: 0,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	result, err := cardSetsCollection.InsertOne(ctx, newCardSet)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to import card set"})
+		return
+	}
+
+	newCardSet.ID = result.InsertedID.(primitive.ObjectID)
+
+	// Increment download count of the source card set
+	_, err = cardSetsCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": cardSetObjID},
+		bson.M{"$inc": bson.M{"download_count": 1}},
+	)
+	if err != nil {
+		// Don't fail if download count update fails, just log it
+		c.JSON(http.StatusCreated, newCardSet)
+		return
+	}
+
+	c.JSON(http.StatusCreated, newCardSet)
 }

@@ -54,6 +54,16 @@ const routes: AppRouteRecord[] = [
     },
   },
   {
+    path: '/global-card-sets',
+    name: 'global-card-sets',
+    component: () => import('../views/CardSets/GlobalCardSetsView.vue'),
+    meta: {
+      requiredAuth: true,
+      layout: true,
+      title: 'Thư viện bộ thẻ',
+    },
+  },
+  {
     path: '/card-sets/:id',
     name: 'card-set-detail',
     component: () => import('../views/CardSets/CardSetDetailView.vue'),

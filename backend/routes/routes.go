@@ -51,10 +51,13 @@ func SetupRoutes(router *gin.Engine, db *mongo.Database, cfg *config.Config) {
 		cardSets := protected.Group("/cardsets")
 		{
 			cardSets.GET("", cardSetController.GetCardSets)
+			cardSets.GET("/global", cardSetController.GetGlobalCardSets)
 			cardSets.GET("/:id", cardSetController.GetCardSet)
 			cardSets.POST("", cardSetController.CreateCardSet)
 			cardSets.PUT("/:id", cardSetController.UpdateCardSet)
 			cardSets.DELETE("/:id", cardSetController.DeleteCardSet)
+			cardSets.POST("/:id/publish", cardSetController.TogglePublish)
+			cardSets.POST("/:id/import", cardSetController.ImportFromGlobal)
 		}
 
 		// Statistics

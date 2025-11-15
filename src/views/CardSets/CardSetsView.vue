@@ -101,6 +101,29 @@
     showExportImportDialog.value = true;
   };
 
+  const togglePublish = async (cardSetId: string, event: Event) => {
+    event.stopPropagation();
+    try {
+      const updatedCardSet = await cardSetStore.togglePublish(cardSetId);
+      const message = updatedCardSet.is_public
+        ? t('cardSets.toast.publishSuccess')
+        : t('cardSets.toast.unpublishSuccess');
+      toast.add({
+        severity: 'success',
+        summary: t('common.success'),
+        detail: message,
+        life: 3000,
+      });
+    } catch (error) {
+      toast.add({
+        severity: 'error',
+        summary: t('common.error'),
+        detail: t('cardSets.toast.publishError'),
+        life: 3000,
+      });
+    }
+  };
+
   onMounted(() => {
     loadCardSets();
   });
@@ -172,10 +195,16 @@
             <div
               class="flex items-center justify-between text-sm text-gray-500"
             >
-              <span>
-                <i class="mr-1 pi pi-clone"></i>
-                {{ cardSet.cards.length }} {{ t('cardSets.cards') }}
-              </span>
+              <div class="flex items-center gap-3">
+                <span>
+                  <i class="mr-1 pi pi-clone"></i>
+                  {{ cardSet.cards.length }} {{ t('cardSets.cards') }}
+                </span>
+                <span v-if="cardSet.is_public" class="flex items-center gap-1 text-green-600">
+                  <i class="pi pi-globe"></i>
+                  {{ t('cardSets.published') }}
+                </span>
+              </div>
               <span>{{ formatDate(cardSet.updated_at) }}</span>
             </div>
           </template>
@@ -188,6 +217,14 @@
                 size="small"
                 class="flex-1"
                 @click.stop="goToCardSetDetail(cardSet.id)"
+              />
+              <Button
+                :icon="cardSet.is_public ? 'pi pi-eye-slash' : 'pi pi-globe'"
+                :severity="cardSet.is_public ? 'success' : 'secondary'"
+                size="small"
+                outlined
+                v-tooltip.top="cardSet.is_public ? t('cardSets.unpublish') : t('cardSets.publish')"
+                @click="togglePublish(cardSet.id, $event)"
               />
               <Button
                 icon="pi pi-share-alt"

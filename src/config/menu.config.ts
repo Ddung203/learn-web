@@ -18,6 +18,12 @@ export const createMenuItems = (
     command: () => navigateHandle('/card-sets'),
   };
 
+  const globalCardSetsItem: MenuItem = {
+    label: 'Card Library',
+    icon: 'pi pi-globe',
+    command: () => navigateHandle('/global-card-sets'),
+  };
+
   const statisticsItem: MenuItem = {
     label: 'Statistics',
     icon: 'pi pi-chart-line',
@@ -53,6 +59,7 @@ export const createMenuItems = (
     return [
       homeItem,
       cardSetsItem,
+      globalCardSetsItem,
       statisticsItem,
       studyModuleItem,
       profileItem,

@@ -33,6 +33,18 @@ class CardSetService {
   async deleteCardSet(id: string): Promise<void> {
     await apiService.delete(`/cardsets/${id}`);
   }
+
+  async togglePublish(id: string): Promise<ICardSet> {
+    return await apiService.post<ICardSet>(`/cardsets/${id}/publish`);
+  }
+
+  async getGlobalCardSets(): Promise<ICardSet[]> {
+    return await apiService.get<ICardSet[]>('/cardsets/global');
+  }
+
+  async importFromGlobal(id: string): Promise<ICardSet> {
+    return await apiService.post<ICardSet>(`/cardsets/${id}/import`);
+  }
 }
 
 export default new CardSetService();
