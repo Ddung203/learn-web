@@ -22,7 +22,10 @@
   };
 
   onMounted(() => {
-    if (authStore.isAuthenticated) {
+    // Only redirect if authenticated AND we have a valid token
+    // This prevents redirect loops when auth state is stale
+    const hasToken = localStorage.getItem('auth_token');
+    if (authStore.isAuthenticated && hasToken) {
       router.push('/card-sets');
     }
   });
@@ -30,7 +33,9 @@
   watch(
     () => authStore.isAuthenticated,
     (value) => {
-      if (value) {
+      // Only redirect if authenticated AND we have a valid token
+      const hasToken = localStorage.getItem('auth_token');
+      if (value && hasToken) {
         router.push('/card-sets');
       }
     }

@@ -112,11 +112,32 @@ class ApiService {
   private handleAuthFailure() {
     this.removeToken();
     this.removeRefreshToken();
-    
-    // Check if we're not already on the login page to avoid infinite loops
-    if (window.location.pathname !== '/login') {
-      window.location.href = '/login';
+
+    // Clear the auth store user to prevent infinite loop
+    // This ensures isAuthenticated becomes false before redirect
+    const authStoreData = localStorage.getItem('auth');
+    if (authStoreData) {
+      try {
+        const parsedData = JSON.parse(authStoreData);
+        parsedData.user = null;
+        localStorage.setItem('auth', JSON.stringify(parsedData));
+      } catch (e) {
+        // If parsing fails, just remove the entire auth store
+        localStorage.removeItem('auth');
+      }
     }
+
+    // Dispatch a custom event to notify the app that auth has failed
+    // This allows the router to handle the redirect gracefully
+    window.dispatchEvent(new CustomEvent('auth:failed'));
+
+    // Fallback: Check if we're not already on the login page to avoid infinite loops
+    // Only use this if the event listener doesn't handle it
+    setTimeout(() => {
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }, 100);
   }
 
   private getToken(): string | null {
