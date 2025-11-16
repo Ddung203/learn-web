@@ -73,7 +73,29 @@
   };
 
   const checkAnswer = (userAnswer: string, correctAnswer: string): boolean => {
-    return normalizeString(userAnswer) === normalizeString(correctAnswer);
+    const normalizedUser = normalizeString(userAnswer);
+    const normalizedCorrect = normalizeString(correctAnswer);
+    
+    // Check exact match first
+    if (normalizedUser === normalizedCorrect) {
+      return true;
+    }
+    
+    // Check for compound format: abc(ef) or abc (ef)
+    const compoundPattern = /^(.+?)\s*\((.+?)\)$/;
+    const match = correctAnswer.match(compoundPattern);
+    
+    if (match) {
+      const mainPart = normalizeString(match[1]);
+      const parenthesisPart = normalizeString(match[2]);
+      
+      // Accept either part as correct
+      if (normalizedUser === mainPart || normalizedUser === parenthesisPart) {
+        return true;
+      }
+    }
+    
+    return false;
   };
 
   const shuffleArray = <T>(array: T[]): T[] => {
