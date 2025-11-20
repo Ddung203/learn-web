@@ -32,6 +32,7 @@ import Textarea from 'primevue/textarea';
 import Toast from 'primevue/toast';
 import Tooltip from 'primevue/tooltip';
 import Checkbox from 'primevue/checkbox';
+import Calendar from 'primevue/calendar';
 
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
@@ -74,4 +75,5 @@ export function importPrimeVueComponents(app: any) {
   app.component('Chip', Chip);
   app.component('Message', Message);
   app.component('Checkbox', Checkbox);
+  app.component('Calendar', Calendar);
 }

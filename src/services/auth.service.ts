@@ -6,6 +6,7 @@ export interface IUser {
   email: string;
   full_name: string;
   avatar?: string;
+  date_of_birth?: string;
   preferred_voice_id?: string;
   created_at: string;
   updated_at: string;
@@ -55,7 +56,7 @@ class AuthService {
     return await apiService.get<IUser>('/profile');
   }
 
-  async updateProfile(data: { full_name?: string; avatar?: string; preferred_voice_id?: string }): Promise<IUser> {
+  async updateProfile(data: { full_name?: string; avatar?: string; date_of_birth?: string; preferred_voice_id?: string }): Promise<IUser> {
     return await apiService.put<IUser>('/profile', data);
   }
 

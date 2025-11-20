@@ -245,6 +245,9 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 	if req.Avatar != "" {
 		update["$set"].(bson.M)["avatar"] = req.Avatar
 	}
+	if req.DateOfBirth != nil {
+		update["$set"].(bson.M)["date_of_birth"] = req.DateOfBirth
+	}
 	if req.PreferredVoiceID != "" {
 		update["$set"].(bson.M)["preferred_voice_id"] = req.PreferredVoiceID
 	}

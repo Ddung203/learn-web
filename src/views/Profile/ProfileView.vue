@@ -16,6 +16,8 @@
 
   const editingName = ref(false);
   const newFullName = ref('');
+  const editingDateOfBirth = ref(false);
+  const newDateOfBirth = ref<Date | null>(null);
   const saving = ref(false);
   const voices = ref<
     Array<{ id: string; name: string; engine: string; gender: string }>
@@ -60,6 +62,41 @@
       newFullName.value = '';
     } catch (error) {
       console.error('Failed to update profile:', error);
+      toast.add({
+        severity: 'error',
+        summary: t('common.error'),
+        detail: t('profile.toast.updateError'),
+        life: 3000,
+      });
+    } finally {
+      saving.value = false;
+    }
+  };
+
+  const startEditDateOfBirth = () => {
+    newDateOfBirth.value = user.value?.date_of_birth ? new Date(user.value.date_of_birth) : null;
+    editingDateOfBirth.value = true;
+  };
+
+  const cancelEditDateOfBirth = () => {
+    editingDateOfBirth.value = false;
+    newDateOfBirth.value = null;
+  };
+
+  const saveDateOfBirth = async () => {
+    saving.value = true;
+    try {
+      await authStore.updateProfile({ date_of_birth: newDateOfBirth.value?.toISOString() });
+      toast.add({
+        severity: 'success',
+        summary: t('common.success'),
+        detail: t('profile.toast.updateSuccess'),
+        life: 3000,
+      });
+      editingDateOfBirth.value = false;
+      newDateOfBirth.value = null;
+    } catch (error) {
+      console.error('Failed to update date of birth:', error);
       toast.add({
         severity: 'error',
         summary: t('common.error'),
@@ -253,6 +290,63 @@
                       severity="danger"
                       :disabled="saving"
                       @click="cancelEditName"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Divider />
+
+              <!-- Date of Birth Section -->
+              <div class="p-4 rounded-lg bg-gray-50">
+                <label class="block mb-2 text-sm font-semibold text-gray-700">
+                  <i class="mr-2 pi pi-calendar"></i>
+                  {{ t('profile.dateOfBirth') }}
+                </label>
+                <div
+                  v-if="!editingDateOfBirth"
+                  class="flex items-center gap-2"
+                >
+                  <span class="text-lg font-medium text-gray-900">
+                    {{ user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString(isVietnamese ? 'vi-VN' : 'en-US') : t('profile.notSet') }}
+                  </span>
+                  <Button
+                    icon="pi pi-pencil"
+                    text
+                    rounded
+                    severity="secondary"
+                    size="small"
+                    class="ml-auto"
+                    @click="startEditDateOfBirth"
+                  />
+                </div>
+                <div
+                  v-else
+                  class="flex flex-col gap-2 sm:flex-row"
+                >
+                  <Calendar
+                    v-model="newDateOfBirth"
+                    class="flex-1"
+                    :placeholder="t('profile.edit.selectDate')"
+                    :disabled="saving"
+                    dateFormat="dd/mm/yy"
+                    showIcon
+                  />
+                  <div class="flex flex-row-reverse justify-start gap-4 lg:flex-row">
+                    <Button
+                      icon="pi pi-check"
+                      rounded
+                      severity="success"
+                      :loading="saving"
+                      :disabled="saving"
+                      @click="saveDateOfBirth"
+                    />
+                    <Button
+                      icon="pi pi-times"
+                      rounded
+                      severity="danger"
+                      :disabled="saving"
+                      @click="cancelEditDateOfBirth"
                     />
                   </div>
                 </div>

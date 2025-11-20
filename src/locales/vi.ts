@@ -164,6 +164,8 @@ export default {
     title: 'Thông tin cá nhân',
     avatar: 'Ảnh đại diện',
     fullName: 'Tên đầy đủ',
+    dateOfBirth: 'Ngày sinh',
+    notSet: 'Chưa thiết lập',
     username: 'Tên đăng nhập',
     email: 'Email',
     emailVerified: 'Đã xác thực',
@@ -188,6 +190,7 @@ export default {
     },
     edit: {
       enterFullName: 'Nhập tên đầy đủ',
+      selectDate: 'Chọn ngày sinh',
       save: 'Lưu',
       cancel: 'Hủy',
     },

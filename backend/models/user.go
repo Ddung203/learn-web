@@ -13,6 +13,7 @@ type User struct {
 	Password         string             `json:"-" bson:"password" binding:"required,min=6"`
 	FullName         string             `json:"full_name" bson:"full_name"`
 	Avatar           string             `json:"avatar" bson:"avatar"`
+	DateOfBirth      *time.Time         `json:"date_of_birth,omitempty" bson:"date_of_birth,omitempty"`
 	PreferredVoiceID string             `json:"preferred_voice_id,omitempty" bson:"preferred_voice_id,omitempty"`
 	CreatedAt        time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt        time.Time          `json:"updated_at" bson:"updated_at"`
@@ -38,7 +39,8 @@ type LoginResponse struct {
 }
 
 type UpdateProfileRequest struct {
-	FullName         string `json:"full_name"`
-	Avatar           string `json:"avatar"`
-	PreferredVoiceID string `json:"preferred_voice_id"`
+	FullName         string     `json:"full_name"`
+	Avatar           string     `json:"avatar"`
+	DateOfBirth      *time.Time `json:"date_of_birth"`
+	PreferredVoiceID string     `json:"preferred_voice_id"`
 }

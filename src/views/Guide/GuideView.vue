@@ -7,7 +7,18 @@ import { useRouter } from 'vue-router';
 const { t } = useLocale();
 const router = useRouter();
 
-const sections = ref([
+type GuideItem = 
+  | { step: string; text: string; action?: () => void }
+  | { icon: string; name: string; desc: string }
+  | { text: string; action?: () => void };
+
+const sections = ref<Array<{
+  title: string;
+  icon: string;
+  color: string;
+  bg: string;
+  items: GuideItem[];
+}>>([
   {
     title: t('guide.gettingStarted.title'),
     icon: 'pi pi-play-circle',
@@ -103,16 +114,16 @@ const sections = ref([
 
             <div class="space-y-3">
               <div v-for="(item, i) in section.items" :key="i" class="flex gap-3 items-start">
-                <div v-if="item.step" class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
-                  {{ item.step }}
+                <div v-if="'step' in item" class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                  {{ (item as any).step }}
                 </div>
-                <i v-else-if="item.icon" :class="['pi', item.icon, 'text-primary text-xl mt-1 flex-shrink-0']"></i>
+                <i v-else-if="'icon' in item" :class="['pi', (item as any).icon, 'text-primary text-xl mt-1 flex-shrink-0']"></i>
                 <div v-else class="w-2 h-2 rounded-full bg-gray-400 mt-2 flex-shrink-0"></div>
                 
                 <div class="flex-1">
-                  <p v-if="item.name" class="font-semibold text-gray-800 mb-1">{{ item.name }}</p>
-                  <p class="text-gray-600 leading-relaxed">{{ item.text || item.desc }}</p>
-                  <Button v-if="item.action" @click="item.action" text size="small" class="mt-2">
+                  <p v-if="'name' in item" class="font-semibold text-gray-800 mb-1">{{ (item as any).name }}</p>
+                  <p class="text-gray-600 leading-relaxed">{{ (item as any).text || (item as any).desc }}</p>
+                  <Button v-if="'action' in item && (item as any).action" @click="(item as any).action()" text size="small" class="mt-2">
                     {{ t('guide.goNow') }} <i class="pi pi-arrow-right ml-2"></i>
                   </Button>
                 </div>

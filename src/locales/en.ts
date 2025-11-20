@@ -164,6 +164,8 @@ export default {
     title: 'Profile',
     avatar: 'Avatar',
     fullName: 'Full Name',
+    dateOfBirth: 'Date of Birth',
+    notSet: 'Not set',
     username: 'Username',
     email: 'Email',
     emailVerified: 'Verified',
@@ -188,6 +190,7 @@ export default {
     },
     edit: {
       enterFullName: 'Enter full name',
+      selectDate: 'Select date of birth',
       save: 'Save',
       cancel: 'Cancel',
     },

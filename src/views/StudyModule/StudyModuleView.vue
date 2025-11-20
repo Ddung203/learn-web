@@ -313,11 +313,21 @@
         <span class="text-xl font-bold lg:text-3xl">{{
           isEditMode ? t('studyModule.editTitle') : t('studyModule.title')
         }}</span>
-        <Button
-          :label="isEditMode ? t('studyModule.updateButton') : t('studyModule.createButton')"
-          @click="saveStudyModule"
-          :disabled="isLoading"
-        />
+        <div class="flex gap-2">
+          <Button
+            v-if="isEditMode"
+            :label="t('common.cancel')"
+            severity="secondary"
+            outlined
+            @click="router.push('/card-sets')"
+            :disabled="isLoading"
+          />
+          <Button
+            :label="isEditMode ? t('studyModule.updateButton') : t('studyModule.createButton')"
+            @click="saveStudyModule"
+            :disabled="isLoading"
+          />
+        </div>
       </div>
 
       <!-- Form -->
