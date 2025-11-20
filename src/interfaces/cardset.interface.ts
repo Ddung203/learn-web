@@ -8,6 +8,16 @@ export interface ICardSetCard {
   phonetic?: string;
 }
 
+export const PhoneticStatus = {
+  EMPTY: '',
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+} as const;
+
+export type PhoneticStatusType = typeof PhoneticStatus[keyof typeof PhoneticStatus];
+
 export interface ICardSet {
   id: string;
   title: string;
@@ -19,6 +29,7 @@ export interface ICardSet {
   user_id?: string;
   is_public?: boolean;
   download_count?: number;
+  phonetic_status?: PhoneticStatusType;
 }
 
 export interface ICreateCardSetParams {
@@ -30,6 +41,7 @@ export interface ICreateCardSetParams {
 
 export interface IUpdateCardSetParams extends Partial<ICreateCardSetParams> {
   id: string;
+  phonetic_status?: string;
 }
 
 export type StudyMode = 'flashcards' | 'test' | 'write' | 'learn' | 'listen';

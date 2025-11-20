@@ -6,6 +6,7 @@
   import ExportImportDialog from '~/components/ExportImportDialog.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useCardSetStore } from '~/stores';
+  import { PhoneticStatus } from '~/interfaces/cardset.interface';
 
   const router = useRouter();
   const toast = useToast();
@@ -41,7 +42,11 @@
     router.push(`/study-module/${cardSetId}`);
   };
 
-  const confirmDeleteCardSet = (cardSetId: string, cardSetTitle: string, event: Event) => {
+  const confirmDeleteCardSet = (
+    cardSetId: string,
+    cardSetTitle: string,
+    event: Event
+  ) => {
     event.stopPropagation();
     cardSetToDelete.value = { id: cardSetId, title: cardSetTitle };
     showDeleteDialog.value = true;
@@ -205,11 +210,24 @@
                   <i class="mr-1 pi pi-clone"></i>
                   {{ cardSet.cards.length }} {{ t('cardSets.cards') }}
                 </span>
-                <span v-if="cardSet.language" class="flex items-center gap-1 text-blue-600">
+                <span
+                  v-if="cardSet.language"
+                  class="flex items-center gap-1 text-blue-600"
+                >
                   <i class="pi pi-globe"></i>
                   {{ cardSet.language.toUpperCase() }}
                 </span>
-                <span v-if="cardSet.is_public" class="flex items-center gap-1 text-green-600">
+                <span
+                  v-if="cardSet.phonetic_status === PhoneticStatus.COMPLETED"
+                  class="flex items-center gap-1 text-purple-600"
+                >
+                  <i class="pi pi-language"></i>
+                  Auto
+                </span>
+                <span
+                  v-if="cardSet.is_public"
+                  class="flex items-center gap-1 text-green-600"
+                >
                   <i class="pi pi-check-circle"></i>
                   {{ t('cardSets.published') }}
                 </span>
@@ -240,7 +258,11 @@
                 :severity="cardSet.is_public ? 'success' : 'secondary'"
                 size="small"
                 outlined
-                v-tooltip.top="cardSet.is_public ? t('cardSets.unpublish') : t('cardSets.publish')"
+                v-tooltip.top="
+                  cardSet.is_public
+                    ? t('cardSets.unpublish')
+                    : t('cardSets.publish')
+                "
                 @click="togglePublish(cardSet.id, $event)"
               />
               <Button
@@ -289,16 +311,19 @@
   >
     <div class="flex flex-col gap-4">
       <div class="flex items-start gap-3">
-        <i class="pi pi-exclamation-triangle text-3xl text-orange-500"></i>
+        <i class="text-3xl text-orange-500 pi pi-exclamation-triangle"></i>
         <div class="flex-1">
           <p class="mb-2 text-gray-800">{{ t('cardSets.confirmDelete') }}</p>
-          <p v-if="cardSetToDelete" class="font-semibold text-gray-900">
+          <p
+            v-if="cardSetToDelete"
+            class="font-semibold text-gray-900"
+          >
             "{{ cardSetToDelete.title }}"
           </p>
         </div>
       </div>
     </div>
-    
+
     <template #footer>
       <div class="flex justify-end gap-2">
         <Button

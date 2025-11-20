@@ -126,10 +126,11 @@ func (csc *CardSetController) CreateCardSet(c *gin.Context) {
 			TimesStdied: 0,
 			Mastered:    0,
 		},
-		IsPublic:      false,
-		DownloadCount: 0,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		IsPublic:       false,
+		DownloadCount:  0,
+		PhoneticStatus: models.PhoneticStatusEmpty,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 
 	cardSetsCollection := csc.db.Collection("cardsets")
@@ -189,6 +190,9 @@ func (csc *CardSetController) UpdateCardSet(c *gin.Context) {
 			}
 		}
 		update["cards"] = req.Cards
+	}
+	if req.PhoneticStatus != "" {
+		update["phonetic_status"] = req.PhoneticStatus
 	}
 
 	cardSetsCollection := csc.db.Collection("cardsets")
@@ -474,12 +478,28 @@ func (csc *CardSetController) GeneratePhonetics(c *gin.Context) {
 		return
 	}
 
+	// Update status to "processing"
+	_, err = cardSetsCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": cardSetObjID},
+		bson.M{"$set": bson.M{
+			"phonetic_status": models.PhoneticStatusProcessing,
+			"updated_at":      time.Now(),
+		}},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update status"})
+		return
+	}
+	cardSet.PhoneticStatus = models.PhoneticStatusProcessing
+
 	// Create phonetic service
 	phoneticService := services.NewPhoneticService()
 
 	// Use goroutines to process cards in parallel with a limit
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, 10) // Limit to 10 concurrent requests
+	hasError := false
 
 	for i := range cardSet.Cards {
 		wg.Add(1)
@@ -505,19 +525,34 @@ func (csc *CardSetController) GeneratePhonetics(c *gin.Context) {
 	// Wait for all goroutines to finish
 	wg.Wait()
 
+	// Determine final status
+	finalStatus := models.PhoneticStatusCompleted
+	if hasError {
+		finalStatus = models.PhoneticStatusFailed
+	}
+
 	// Update the card set in database
 	update := bson.M{
 		"$set": bson.M{
-			"cards":      cardSet.Cards,
-			"updated_at": time.Now(),
+			"cards":           cardSet.Cards,
+			"phonetic_status": finalStatus,
+			"updated_at":      time.Now(),
 		},
 	}
 
 	_, err = cardSetsCollection.UpdateOne(ctx, bson.M{"_id": cardSetObjID}, update)
 	if err != nil {
+		// Even if update fails, set status to failed
+		cardSetsCollection.UpdateOne(ctx, bson.M{"_id": cardSetObjID}, bson.M{
+			"$set": bson.M{
+				"phonetic_status": models.PhoneticStatusFailed,
+				"updated_at":      time.Now(),
+			},
+		})
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card set"})
 		return
 	}
 
+	cardSet.PhoneticStatus = finalStatus
 	c.JSON(http.StatusOK, cardSet)
 }

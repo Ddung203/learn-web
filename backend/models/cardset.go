@@ -6,6 +6,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// PhoneticStatus constants
+const (
+	PhoneticStatusEmpty      = ""
+	PhoneticStatusPending    = "pending"
+	PhoneticStatusProcessing = "processing"
+	PhoneticStatusCompleted  = "completed"
+	PhoneticStatusFailed     = "failed"
+)
+
 type CardSetCard struct {
 	ID           string `json:"id" bson:"id"`
 	Terminology  string `json:"terminology" bson:"terminology" binding:"required,max=500"`
@@ -23,17 +32,18 @@ type StudyProgress struct {
 }
 
 type CardSet struct {
-	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserID        primitive.ObjectID `json:"user_id" bson:"user_id"`
-	Title         string             `json:"title" bson:"title" binding:"required,max=200"`
-	Description   string             `json:"description" bson:"description" binding:"max=1000"`
-	Language      string             `json:"language" bson:"language" binding:"max=10"`
-	Cards         []CardSetCard      `json:"cards" bson:"cards"`
-	Progress      StudyProgress      `json:"progress" bson:"progress"`
-	IsPublic      bool               `json:"is_public" bson:"is_public"`
-	DownloadCount int                `json:"download_count" bson:"download_count"`
-	CreatedAt     time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt     time.Time          `json:"updated_at" bson:"updated_at"`
+	ID             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	UserID         primitive.ObjectID `json:"user_id" bson:"user_id"`
+	Title          string             `json:"title" bson:"title" binding:"required,max=200"`
+	Description    string             `json:"description" bson:"description" binding:"max=1000"`
+	Language       string             `json:"language" bson:"language" binding:"max=10"`
+	Cards          []CardSetCard      `json:"cards" bson:"cards"`
+	Progress       StudyProgress      `json:"progress" bson:"progress"`
+	IsPublic       bool               `json:"is_public" bson:"is_public"`
+	DownloadCount  int                `json:"download_count" bson:"download_count"`
+	PhoneticStatus string             `json:"phonetic_status" bson:"phonetic_status"`
+	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
 type CreateCardSetRequest struct {
@@ -44,8 +54,9 @@ type CreateCardSetRequest struct {
 }
 
 type UpdateCardSetRequest struct {
-	Title       string        `json:"title" binding:"max=200"`
-	Description string        `json:"description" binding:"max=1000"`
-	Language    string        `json:"language" binding:"max=10"`
-	Cards       []CardSetCard `json:"cards"`
+	Title          string        `json:"title" binding:"max=200"`
+	Description    string        `json:"description" binding:"max=1000"`
+	Language       string        `json:"language" binding:"max=10"`
+	Cards          []CardSetCard `json:"cards"`
+	PhoneticStatus string        `json:"phonetic_status" binding:"max=20"`
 }
