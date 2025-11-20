@@ -155,10 +155,15 @@ export default {
     title: 'Nhập thẻ',
     instruction:
       'Dán dữ liệu của bạn vào đây (từ Word, Excel, Google Docs, v.v.)',
+    delimiter: 'Dấu phân cách',
+    comma: 'Dấu phẩy (,)',
+    semicolon: 'Dấu chấm phẩy (;)',
+    custom: 'Tuỳ chỉnh',
+    customPlaceholder: 'Ví dụ: |',
     placeholder:
       'Thuật ngữ 1, Định nghĩa 1\nThuật ngữ 2, Định nghĩa 2\nThuật ngữ 3, Định nghĩa 3',
     placeholderWithExample:
-      'Thuật ngữ 1, Định nghĩa 1, Ví dụ 1 (tùy chọn)\nThuật ngữ 2, Định nghĩa 2, Ví dụ 2 (tùy chọn)\nThuật ngữ 3, Định nghĩa 3',
+      'Thuật ngữ, Định nghĩa, Ví dụ (tùy chọn), Từ loại (tùy chọn), Phiên âm (tùy chọn)\napple, quả táo, I eat an apple, noun, /ˈæp.əl/\nrun, chạy, He runs fast, verb, /rʌn/',
     preview: 'Xem trước',
     noContent: 'Không có nội dung để xem trước',
     cancel: 'Hủy',

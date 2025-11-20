@@ -123,10 +123,15 @@ export default {
   importPopup: {
     title: 'Import Cards',
     instruction: 'Paste your data here (from Word, Excel, Google Docs, etc.)',
+    delimiter: 'Delimiter',
+    comma: 'Comma (,)',
+    semicolon: 'Semicolon (;)',
+    custom: 'Custom',
+    customPlaceholder: 'e.g., |',
     placeholder:
       'Terminology 1, Definition 1\nTerminology 2, Definition 2\nTerminology 3, Definition 3',
     placeholderWithExample:
-      'Term 1, Definition 1, Example 1 (optional)\nTerm 2, Definition 2, Example 2 (optional)\nTerm 3, Definition 3',
+      'Term, Definition, Example (optional), Part of Speech (optional), Phonetic (optional)\napple, a fruit, I eat an apple, noun, /ˈæp.əl/\nrun, to move fast, He runs fast, verb, /rʌn/',
     preview: 'Preview',
     noContent: 'No content to preview',
     cancel: 'Cancel',

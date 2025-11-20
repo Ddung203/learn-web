@@ -21,6 +21,8 @@
   }>();
 
   const inputData = ref('');
+  const delimiter = ref(',');
+  const customDelimiter = ref('');
   const parsedCards = ref<Array<{ 
     terminology: string; 
     define: string; 
@@ -30,9 +32,14 @@
     phonetic?: string;
   }>>([]);
 
-  // Parse input data: each line should be "Term, Definition" or "Term, Definition, Example"
   const parseInputData = () => {
     if (!inputData.value.trim()) {
+      parsedCards.value = [];
+      return;
+    }
+
+    const activeDelimiter = delimiter.value === 'custom' ? customDelimiter.value : delimiter.value;
+    if (!activeDelimiter) {
       parsedCards.value = [];
       return;
     }
@@ -40,12 +47,14 @@
     const lines = inputData.value.split('\n').filter((line) => line.trim());
     parsedCards.value = lines
       .map((line) => {
-        const parts = line.split(',').map((part) => part.trim());
+        const parts = line.split(activeDelimiter).map((part) => part.trim());
         const terminology = parts[0] || '';
         const define = parts[1] || '';
         const example = parts[2] || '';
+        const part_of_speech = parts[3] || '';
+        const phonetic = parts[4] || '';
 
-        return { terminology, define, example, image_url: '', part_of_speech: '', phonetic: '' };
+        return { terminology, define, example, image_url: '', part_of_speech, phonetic };
       })
       .filter((card) => card.terminology && card.define);
   };
@@ -70,6 +79,8 @@
 
   const closePopup = () => {
     inputData.value = '';
+    delimiter.value = ',';
+    customDelimiter.value = '';
     parsedCards.value = [];
     emit('update:visible', false);
   };
@@ -92,6 +103,39 @@
     :draggable="false"
   >
     <span class="block mb-5 p-text-secondary">{{ t('importPopup.instruction') }}</span>
+    
+    <!-- Delimiter Selection -->
+    <div class="flex gap-3 mb-3 align-items-center">
+      <label class="font-semibold">{{ t('importPopup.delimiter') }}:</label>
+      <div class="flex gap-2 align-items-center">
+        <Button
+          :label="t('importPopup.comma')"
+          :severity="delimiter === ',' ? 'primary' : 'secondary'"
+          size="small"
+          @click="delimiter = ','; parseInputData()"
+        />
+        <Button
+          :label="t('importPopup.semicolon')"
+          :severity="delimiter === ';' ? 'primary' : 'secondary'"
+          size="small"
+          @click="delimiter = ';'; parseInputData()"
+        />
+        <Button
+          :label="t('importPopup.custom')"
+          :severity="delimiter === 'custom' ? 'primary' : 'secondary'"
+          size="small"
+          @click="delimiter = 'custom'"
+        />
+        <InputText
+          v-if="delimiter === 'custom'"
+          v-model="customDelimiter"
+          :placeholder="t('importPopup.customPlaceholder')"
+          class="w-32"
+          @input="parseInputData"
+        />
+      </div>
+    </div>
+
     <div class="flex gap-3 mb-3 align-items-center">
       <Textarea
         v-model="inputData"
