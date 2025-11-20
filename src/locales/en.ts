@@ -323,6 +323,7 @@ export default {
       mastered: 'Mastered',
       remaining: 'Remaining',
       defineThis: 'What is the definition of this term?',
+      example: 'Example',
       placeholder: 'Enter your answer...',
       check: 'Check',
       showAnswer: 'Show Answer',

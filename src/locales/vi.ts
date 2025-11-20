@@ -324,6 +324,7 @@ export default {
       mastered: 'Đã nắm vững',
       remaining: 'Còn lại',
       defineThis: 'Định nghĩa của thuật ngữ này là gì?',
+      example: 'Ví dụ',
       placeholder: 'Nhập câu trả lời...',
       check: 'Kiểm tra',
       showAnswer: 'Hiện đáp án',

@@ -744,6 +744,17 @@
                 />
               </div>
 
+              <!-- Example -->
+              <div v-if="currentCard.card.example" class="mb-4 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="text-sm text-gray-500 mb-1">
+                  <i class="pi pi-book mr-1"></i>
+                  {{ t('studyModes.learn.example') }}
+                </div>
+                <div class="text-base text-gray-700 italic">
+                  {{ currentCard.card.example }}
+                </div>
+              </div>
+
               <!-- Difficulty Indicator -->
               <div
                 v-if="currentCard.attempts > 0"
