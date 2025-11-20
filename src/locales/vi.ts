@@ -27,6 +27,56 @@ export default {
     processing: 'Đang xử lý...',
     redirecting: 'Đang chuyển hướng...',
   },
+  guide: {
+    title: 'Hướng Dẫn Sử Dụng',
+    subtitle: 'Hướng dẫn đầy đủ để làm chủ nền tảng',
+    goNow: 'Đi ngay',
+    gettingStarted: {
+      title: 'Bắt Đầu',
+      step1: 'Đăng nhập hoặc tạo tài khoản để truy cập đầy đủ tính năng',
+      step2: 'Nhấn "Tạo bộ thẻ mới" để bắt đầu xây dựng bộ thẻ đầu tiên',
+      step3: 'Khám phá thư viện để tìm các bộ thẻ được chia sẻ bởi người dùng khác'
+    },
+    createCardSet: {
+      title: 'Tạo Bộ Thẻ',
+      step1: 'Nhập tiêu đề và mô tả cho bộ thẻ của bạn',
+      step2: 'Chọn ngôn ngữ (Tiếng Anh, Tiếng Việt, Tiếng Trung, v.v.)',
+      step3: 'Thêm thẻ với thuật ngữ, định nghĩa, ví dụ và hình ảnh',
+      step4: 'Dùng "Nhập từ văn bản" để thêm nhanh nhiều thẻ cùng lúc'
+    },
+    studyModes: {
+      title: 'Chế Độ Học',
+      flashcards: 'Flashcards',
+      flashcardsDesc: 'Lật thẻ để ôn tập thuật ngữ và định nghĩa theo tốc độ của bạn',
+      learn: 'Learn',
+      learnDesc: 'Chế độ học thích ứng tập trung vào các thẻ bạn cần luyện tập',
+      test: 'Test',
+      testDesc: 'Câu hỏi trắc nghiệm để kiểm tra kiến thức của bạn',
+      write: 'Write',
+      writeDesc: 'Gõ đáp án đúng để tăng cường khả năng ghi nhớ',
+      listen: 'Listen',
+      listenDesc: 'Luyện tập dựa trên âm thanh với phát âm text-to-speech'
+    },
+    sharing: {
+      title: 'Chia Sẻ & Cộng Tác',
+      step1: 'Mở bất kỳ bộ thẻ nào và nhấn nút chia sẻ để tạo link',
+      step2: 'Chia sẻ link với bạn bè, bạn học hoặc học sinh',
+      step3: 'Người khác có thể nhập bộ thẻ của bạn bằng tính năng "Nhập bộ thẻ từ link"'
+    },
+    library: {
+      title: 'Thư Viện Toàn Cầu',
+      step1: 'Duyệt thư viện toàn cầu để tìm bộ thẻ do cộng đồng tạo ra',
+      step2: 'Xem trước bất kỳ bộ thẻ nào để xem nội dung trước khi nhập',
+      step3: 'Nhập bộ thẻ vào bộ sưu tập cá nhân chỉ với một cú nhấp chuột'
+    },
+    statistics: {
+      title: 'Theo Dõi Tiến Độ',
+      item1: 'Xem các phiên học, tỷ lệ chính xác và thời gian học tập',
+      item2: 'Theo dõi chuỗi học tập và hoạt động hàng ngày',
+      item3: 'Phân tích hiệu suất theo chế độ học để xác định điểm cần cải thiện',
+      item4: 'Kiểm tra trang Thống kê để có thông tin chi tiết và thành tích'
+    }
+  },
   login: {
     title: 'Đăng nhập',
     subtitle: 'Nhập email và mật khẩu để tiếp tục',
@@ -158,6 +208,15 @@ export default {
   navbar: {
     welcome: 'Chào mừng đến với ChocoLearn',
     welcomeUser: 'Chào mừng, {name}',
+    home: 'Trang chủ',
+    guide: 'Hướng dẫn',
+    myCardSets: 'Bộ thẻ của tôi',
+    cardLibrary: 'Thư viện bộ thẻ',
+    statistics: 'Thống kê',
+    createNewSet: 'Tạo bộ thẻ mới',
+    profile: 'Hồ sơ',
+    signIn: 'Đăng nhập',
+    signOut: 'Đăng xuất'
   },
   footer: {
     copyright: 'Bản quyền © {year}',

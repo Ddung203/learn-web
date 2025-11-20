@@ -32,7 +32,7 @@
         })
       : t('navbar.welcome');
 
-    return createMenuItems(navigateHandle, logout, isAuthenticated.value);
+    return createMenuItems(navigateHandle, logout, isAuthenticated.value, t);
   });
 </script>
 

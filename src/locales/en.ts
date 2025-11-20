@@ -27,6 +27,56 @@ export default {
     processing: 'Processing...',
     redirecting: 'Redirecting...',
   },
+  guide: {
+    title: 'How to Use',
+    subtitle: 'Complete guide to master the platform',
+    goNow: 'Go Now',
+    gettingStarted: {
+      title: 'Getting Started',
+      step1: 'Sign in or create an account to access all features',
+      step2: 'Click "Create New Set" to start building your first card set',
+      step3: 'Explore the library to discover card sets shared by other users'
+    },
+    createCardSet: {
+      title: 'Creating Card Sets',
+      step1: 'Enter a title and description for your card set',
+      step2: 'Choose the language (English, Vietnamese, Chinese, etc.)',
+      step3: 'Add cards with terms, definitions, examples, and images',
+      step4: 'Use "Import from Text" to quickly add multiple cards at once'
+    },
+    studyModes: {
+      title: 'Study Modes',
+      flashcards: 'Flashcards',
+      flashcardsDesc: 'Flip cards to review terms and definitions at your own pace',
+      learn: 'Learn',
+      learnDesc: 'Adaptive learning mode that focuses on cards you need to practice',
+      test: 'Test',
+      testDesc: 'Multiple choice questions to test your knowledge',
+      write: 'Write',
+      writeDesc: 'Type the correct answer to strengthen memory retention',
+      listen: 'Listen',
+      listenDesc: 'Audio-based practice with text-to-speech pronunciation'
+    },
+    sharing: {
+      title: 'Sharing & Collaboration',
+      step1: 'Open any card set and click the share button to generate a link',
+      step2: 'Share the link with friends, classmates, or students',
+      step3: 'Others can import your card set using "Import Shared" feature'
+    },
+    library: {
+      title: 'Global Library',
+      step1: 'Browse the global library to find card sets created by the community',
+      step2: 'Preview any card set to see its content before importing',
+      step3: 'Import card sets to your personal collection with one click'
+    },
+    statistics: {
+      title: 'Track Your Progress',
+      item1: 'View your study sessions, accuracy rates, and time spent learning',
+      item2: 'Monitor your learning streak and daily activity',
+      item3: 'Analyze performance by study mode to identify areas for improvement',
+      item4: 'Check the Statistics page for detailed insights and achievements'
+    }
+  },
   studyModule: {
     title: 'Create a new set',
     editTitle: 'Edit card set',
@@ -158,6 +208,15 @@ export default {
   navbar: {
     welcome: 'Welcome to ChocoLearn',
     welcomeUser: 'Welcome, {name}',
+    home: 'Home',
+    guide: 'Guide',
+    myCardSets: 'My Card Sets',
+    cardLibrary: 'Card Library',
+    statistics: 'Statistics',
+    createNewSet: 'Create New Set',
+    profile: 'Profile',
+    signIn: 'Sign In',
+    signOut: 'Sign Out'
   },
   footer: {
     copyright: 'Copyright © {year}',

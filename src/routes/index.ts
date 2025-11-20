@@ -34,6 +34,16 @@ const routes: AppRouteRecord[] = [
     },
   },
   {
+    path: '/guide',
+    name: 'guide',
+    component: () => import('../views/Guide/GuideView.vue'),
+    meta: {
+      requiredAuth: false,
+      layout: true,
+      title: 'Hướng dẫn',
+    },
+  },
+  {
     path: '/study-module',
     name: 'study-module',
     component: () => import('../views/StudyModule/StudyModuleView.vue'),
