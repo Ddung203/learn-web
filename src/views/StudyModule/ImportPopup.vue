@@ -10,13 +10,13 @@
   }>();
   const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void;
-    (e: 'import', cards: Array<{ terminology: string; define: string; image_url?: string }>): void;
+    (e: 'import', cards: Array<{ terminology: string; define: string; example?: string; image_url?: string }>): void;
   }>();
 
   const inputData = ref('');
-  const parsedCards = ref<Array<{ terminology: string; define: string; image_url?: string }>>([]);
+  const parsedCards = ref<Array<{ terminology: string; define: string; example?: string; image_url?: string }>>([]);
 
-  // Parse input data: each line should be "Term, Definition"
+  // Parse input data: each line should be "Term, Definition" or "Term, Definition, Example"
   const parseInputData = () => {
     if (!inputData.value.trim()) {
       parsedCards.value = [];
@@ -26,12 +26,12 @@
     const lines = inputData.value.split('\n').filter((line) => line.trim());
     parsedCards.value = lines
       .map((line) => {
-        const [terminology = '', ...rest] = line
-          .split(',')
-          .map((part) => part.trim());
-        const define = rest.join(',');
+        const parts = line.split(',').map((part) => part.trim());
+        const terminology = parts[0] || '';
+        const define = parts[1] || '';
+        const example = parts[2] || '';
 
-        return { terminology, define, image_url: '' };
+        return { terminology, define, example, image_url: '' };
       })
       .filter((card) => card.terminology && card.define);
   };
@@ -41,7 +41,7 @@
   // Update card data
   const updateCard = (
     index: number,
-    field: 'terminology' | 'define' | 'image_url',
+    field: 'terminology' | 'define' | 'example' | 'image_url',
     value: string
   ) => {
     if (parsedCards.value[index]) {
@@ -84,7 +84,7 @@
         id="username"
         rows="7"
         class="w-full"
-        :placeholder="t('importPopup.placeholder')"
+        :placeholder="t('importPopup.placeholderWithExample')"
         @input="parseInputData"
       />
     </div>

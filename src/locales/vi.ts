@@ -67,6 +67,9 @@ export default {
     importMany: 'Nhập nhiều',
     terminology: 'Thuật ngữ',
     definition: 'Định nghĩa',
+    example: 'Ví dụ',
+    optional: 'Tùy chọn',
+    examplePlaceholder: 'Thêm câu ví dụ...',
     titlePlaceholder: 'Tiêu đề',
     descriptionPlaceholder: 'Thêm mô tả...',
     deleteTooltip: 'Xóa',
@@ -86,6 +89,8 @@ export default {
       'Dán dữ liệu của bạn vào đây (từ Word, Excel, Google Docs, v.v.)',
     placeholder:
       'Thuật ngữ 1, Định nghĩa 1\nThuật ngữ 2, Định nghĩa 2\nThuật ngữ 3, Định nghĩa 3',
+    placeholderWithExample:
+      'Thuật ngữ 1, Định nghĩa 1, Ví dụ 1 (tùy chọn)\nThuật ngữ 2, Định nghĩa 2, Ví dụ 2 (tùy chọn)\nThuật ngữ 3, Định nghĩa 3',
     preview: 'Xem trước',
     noContent: 'Không có nội dung để xem trước',
     cancel: 'Hủy',
@@ -112,6 +117,8 @@ export default {
     lastLogin: 'Lần đăng nhập cuối',
     notAvailable: 'Chưa có',
     noName: 'Chưa có tên',
+    preferredVoice: 'Giọng đọc ưa thích',
+    selectVoice: 'Chọn giọng đọc cho phát âm',
     role: {
       user: 'Người dùng',
     },
@@ -123,6 +130,7 @@ export default {
     toast: {
       enterFullName: 'Vui lòng nhập tên đầy đủ',
       updateSuccess: 'Cập nhật tên đầy đủ thành công',
+      voiceUpdateSuccess: 'Cập nhật giọng đọc thành công',
       updateError: 'Có lỗi xảy ra khi cập nhật',
     },
   },

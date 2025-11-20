@@ -2,6 +2,7 @@ export interface ICardSetCard {
   id: string;
   terminology: string;
   define: string;
+  example?: string;
   image_url?: string;
 }
 

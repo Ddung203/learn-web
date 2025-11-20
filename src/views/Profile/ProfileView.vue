@@ -8,6 +8,7 @@
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useAuthStore } from '~/stores';
+  import { ttsService } from '~/services';
 
   const { t, isVietnamese } = useLocale();
   const authStore = useAuthStore();
@@ -16,6 +17,12 @@
   const editingName = ref(false);
   const newFullName = ref('');
   const saving = ref(false);
+  const voices = ref<
+    Array<{ id: string; name: string; engine: string; gender: string }>
+  >([]);
+  const selectedVoice = ref('');
+  const loadingVoices = ref(false);
+  const savingVoice = ref(false);
 
   const user = computed(() => authStore.user);
 
@@ -81,9 +88,53 @@
     }
   };
 
+  const loadVoices = async () => {
+    loadingVoices.value = true;
+    try {
+      voices.value = await ttsService.getVoices();
+      if (user.value?.preferred_voice_id) {
+        selectedVoice.value = user.value.preferred_voice_id;
+      } else if (voices.value.length > 0) {
+        selectedVoice.value = voices.value[0].id;
+      }
+    } catch (error) {
+      console.error('Failed to load voices:', error);
+    } finally {
+      loadingVoices.value = false;
+    }
+  };
+
+  const saveVoicePreference = async () => {
+    if (!selectedVoice.value) return;
+
+    savingVoice.value = true;
+    try {
+      await authStore.updateProfile({
+        preferred_voice_id: selectedVoice.value,
+      });
+      toast.add({
+        severity: 'success',
+        summary: t('common.success'),
+        detail: t('profile.toast.voiceUpdateSuccess'),
+        life: 3000,
+      });
+    } catch (error) {
+      console.error('Failed to update voice preference:', error);
+      toast.add({
+        severity: 'error',
+        summary: t('common.error'),
+        detail: t('profile.toast.updateError'),
+        life: 3000,
+      });
+    } finally {
+      savingVoice.value = false;
+    }
+  };
+
   onMounted(() => {
     if (authStore.isAuthenticated) {
       authStore.fetchProfile();
+      loadVoices();
     }
   });
 
@@ -204,6 +255,48 @@
                       @click="cancelEditName"
                     />
                   </div>
+                </div>
+              </div>
+
+              <Divider />
+
+              <!-- Voice Preference Section -->
+              <div class="p-4 rounded-lg bg-gray-50">
+                <label class="block mb-2 text-sm font-semibold text-gray-700">
+                  <i class="mr-2 pi pi-volume-up"></i>
+                  {{ t('profile.preferredVoice') }}
+                </label>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Dropdown
+                    v-model="selectedVoice"
+                    filter
+                    :options="voices"
+                    optionLabel="name"
+                    optionValue="id"
+                    :placeholder="t('profile.selectVoice')"
+                    class="flex-1"
+                    :loading="loadingVoices"
+                    :disabled="loadingVoices || savingVoice"
+                  >
+                    <template #option="{ option }">
+                      <div class="flex items-center gap-2">
+                        <span>{{ option.name }}</span>
+                        <span class="text-xs text-gray-500"
+                          >({{ option.engine }})</span
+                        >
+                      </div>
+                    </template>
+                  </Dropdown>
+                  <Button
+                    icon="pi pi-check"
+                    :label="t('common.save')"
+                    severity="success"
+                    :loading="savingVoice"
+                    :disabled="
+                      savingVoice || selectedVoice === user?.preferred_voice_id
+                    "
+                    @click="saveVoicePreference"
+                  />
                 </div>
               </div>
 

@@ -534,6 +534,18 @@
                     aria-label="Play pronunciation"
                   />
                 </div>
+                <!-- Example -->
+                <div
+                  v-if="currentCard.example"
+                  class="mt-4 p-3 bg-blue-100 rounded-lg border border-blue-300"
+                >
+                  <div class="text-xs font-semibold text-blue-700 uppercase mb-1">
+                    {{ t('studyModule.example') }}
+                  </div>
+                  <div class="text-sm text-blue-900 italic">
+                    "{{ currentCard.example }}"
+                  </div>
+                </div>
               </div>
             </div>
           </div>

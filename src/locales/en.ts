@@ -34,6 +34,9 @@ export default {
     importMany: 'Import',
     terminology: 'Terminology',
     definition: 'Definition',
+    example: 'Example',
+    optional: 'Optional',
+    examplePlaceholder: 'Add an example sentence...',
     titlePlaceholder: 'Title',
     descriptionPlaceholder: 'Add a description...',
     deleteTooltip: 'Delete',
@@ -52,6 +55,8 @@ export default {
     instruction: 'Paste your data here (from Word, Excel, Google Docs, etc.)',
     placeholder:
       'Terminology 1, Definition 1\nTerminology 2, Definition 2\nTerminology 3, Definition 3',
+    placeholderWithExample:
+      'Term 1, Definition 1, Example 1 (optional)\nTerm 2, Definition 2, Example 2 (optional)\nTerm 3, Definition 3',
     preview: 'Preview',
     noContent: 'No content to preview',
     cancel: 'Cancel',
@@ -112,6 +117,8 @@ export default {
     lastLogin: 'Last Login',
     notAvailable: 'N/A',
     noName: 'No name',
+    preferredVoice: 'Preferred Voice',
+    selectVoice: 'Select a voice for pronunciation',
     role: {
       user: 'User',
     },
@@ -123,6 +130,7 @@ export default {
     toast: {
       enterFullName: 'Please enter full name',
       updateSuccess: 'Full name updated successfully',
+      voiceUpdateSuccess: 'Voice preference updated successfully',
       updateError: 'An error occurred while updating',
     },
   },

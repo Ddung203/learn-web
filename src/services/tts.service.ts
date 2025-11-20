@@ -66,14 +66,16 @@ class TTSService {
     }
   }
 
-  async playText(text: string, voiceId: string = DEFAULT_VOICE): Promise<void> {
+  async playText(text: string, voiceId?: string): Promise<void> {
+    const effectiveVoiceId = voiceId || this.getUserPreferredVoice() || DEFAULT_VOICE;
+    
     try {
       if (this.currentAudio) {
         this.currentAudio.pause();
         this.currentAudio = null;
       }
 
-      const blob = await this.synthesizeSpeech(text, voiceId);
+      const blob = await this.synthesizeSpeech(text, effectiveVoiceId);
       const audioUrl = URL.createObjectURL(blob);
       
       const audio = new Audio(audioUrl);
@@ -98,6 +100,19 @@ class TTSService {
       console.error('Error playing text:', error);
       throw error;
     }
+  }
+
+  getUserPreferredVoice(): string | null {
+    try {
+      const authStoreData = localStorage.getItem('auth');
+      if (authStoreData) {
+        const parsed = JSON.parse(authStoreData);
+        return parsed.user?.preferred_voice_id || null;
+      }
+    } catch (error) {
+      console.error('Error getting user preferred voice:', error);
+    }
+    return null;
   }
 
   stopPlayback(): void {

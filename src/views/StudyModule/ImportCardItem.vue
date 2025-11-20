@@ -7,14 +7,14 @@
   
   const props = defineProps<{
     index: number;
-    item: { terminology: string; define: string; image_url?: string };
+    item: { terminology: string; define: string; example?: string; image_url?: string };
   }>();
 
   const emits = defineEmits<{
     (
       e: 'update',
       index: number,
-      field: 'terminology' | 'define' | 'image_url',
+      field: 'terminology' | 'define' | 'example' | 'image_url',
       value: string
     ): void;
     (e: 'remove', index: number): void;
@@ -22,7 +22,7 @@
 
   const showImageSearch = ref(false);
 
-  const handleInput = (field: 'terminology' | 'define' | 'image_url', value: string) => {
+  const handleInput = (field: 'terminology' | 'define' | 'example' | 'image_url', value: string) => {
     emits('update', props.index, field, value);
   };
 
@@ -101,6 +101,24 @@
             >{{ t('studyModule.definition') }}</label
           >
         </div>
+      </div>
+
+      <!-- Example Field -->
+      <div class="w-full">
+        <InputText
+          type="text"
+          class="w-full"
+          :value="item.example"
+          @input="
+            handleInput('example', ($event.target as HTMLInputElement).value)
+          "
+          :placeholder="t('studyModule.examplePlaceholder')"
+        />
+        <label
+          for="example"
+          class="uppercase text-sm font-bold text-[#939bb4]"
+          >{{ t('studyModule.example') }} ({{ t('studyModule.optional') }})</label
+        >
       </div>
 
       <!-- Image Section -->

@@ -245,6 +245,9 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 	if req.Avatar != "" {
 		update["$set"].(bson.M)["avatar"] = req.Avatar
 	}
+	if req.PreferredVoiceID != "" {
+		update["$set"].(bson.M)["preferred_voice_id"] = req.PreferredVoiceID
+	}
 
 	// Update user
 	result := usersCollection.FindOneAndUpdate(

@@ -112,6 +112,7 @@ export const useAuthStore = defineStore(
     const updateProfile = async (data: {
       full_name?: string;
       avatar?: string;
+      preferred_voice_id?: string;
     }) => {
       loading.value = true;
       error.value = null;
