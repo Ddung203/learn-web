@@ -2,6 +2,7 @@
   import { onMounted, onUnmounted } from 'vue';
   import { useRouter } from 'vue-router';
   import NavBar from './components/NavBar.vue';
+  import UpdateCampaignDialog from './components/UpdateCampaignDialog.vue';
   import { useTokenRefresh } from './composables/useTokenRefresh';
   import { useAuthStore } from './stores';
 
@@ -34,6 +35,7 @@
 <template>
   <ConfirmDialog></ConfirmDialog>
   <Toast />
+  <UpdateCampaignDialog />
   <div>
     <NavBar />
     <router-view />

@@ -25,6 +25,10 @@ func SetupRoutes(router *gin.Engine, db *mongo.Database, cfg *config.Config) {
 	// API v1
 	v1 := router.Group("/api/v1")
 
+	// Update Campaign
+	updateCampaignController := controllers.NewUpdateCampaignController()
+	v1.GET("/update-campaign", updateCampaignController.GetUpdateCampaign)
+
 	// Auth routes (public)
 	authController := controllers.NewAuthController(db, cfg)
 	loginOrRegisterController := controllers.NewLoginOrRegisterController(db, cfg)

@@ -35,7 +35,10 @@
         <h3
           class="max-w-5xl text-lg font-bold leading-none tracking-tighter text-center text-primary sm:text-xl md:text-2xl lg:text-4xl lg:max-w-7xl"
         >
-          {{ t('introduction.title') }}
+          <span class="whitespace-nowrap">
+            {{ t('introduction.title') }}
+            <span class="text-green-500">ChocoLearn</span>?
+          </span>
         </h3>
         <p
           class="my-3 max-w-xl w-11/12 xs:w-[280px] mx-auto text-sm leading-relaxed text-center text-neutral-800 md:text-lg md:w-11/12 lg:w-3/5 md:my-6 lg:my-8"
