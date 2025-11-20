@@ -4,12 +4,14 @@ import type { ICardSet, ICardSetCard } from '~/interfaces';
 export interface ICreateCardSetRequest {
   title: string;
   description: string;
+  language?: string;
   cards: ICardSetCard[];
 }
 
 export interface IUpdateCardSetRequest {
   title?: string;
   description?: string;
+  language?: string;
   cards?: ICardSetCard[];
 }
 

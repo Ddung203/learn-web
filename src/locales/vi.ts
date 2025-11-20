@@ -62,7 +62,9 @@ export default {
   },
   studyModule: {
     title: 'Tạo một học phần mới',
+    editTitle: 'Chỉnh sửa bộ thẻ',
     createButton: 'Lưu lại',
+    updateButton: 'Cập nhật',
     addCard: 'Thêm thẻ',
     importMany: 'Nhập nhiều',
     terminology: 'Thuật ngữ',
@@ -72,6 +74,7 @@ export default {
     examplePlaceholder: 'Thêm câu ví dụ...',
     titlePlaceholder: 'Tiêu đề',
     descriptionPlaceholder: 'Thêm mô tả...',
+    languagePlaceholder: 'Chọn ngôn ngữ',
     deleteTooltip: 'Xóa',
     deleteAllTooltip: 'Xóa tất cả',
     cards: 'thẻ',
@@ -81,6 +84,9 @@ export default {
       atLeastOneCard: 'Vui lòng thêm ít nhất 4 thẻ hợp lệ',
       createSuccess: 'Tạo học phần thành công',
       createError: 'Có lỗi xảy ra khi tạo học phần',
+      updateSuccess: 'Cập nhật bộ thẻ thành công',
+      updateError: 'Có lỗi xảy ra khi cập nhật bộ thẻ',
+      loadError: 'Không thể tải bộ thẻ',
     },
   },
   importPopup: {

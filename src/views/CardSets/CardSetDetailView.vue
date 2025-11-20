@@ -93,6 +93,12 @@
     showExportImportDialog.value = true;
   };
 
+  const editCardSet = () => {
+    if (cardSet.value) {
+      router.push(`/study-module/${cardSet.value.id}`);
+    }
+  };
+
   onMounted(() => {
     loadCardSet();
   });
@@ -115,6 +121,13 @@
         <div class="flex items-start justify-between gap-4 mb-2">
           <h1 class="text-3xl font-bold">{{ cardSet.title }}</h1>
           <div class="flex gap-2">
+            <Button
+              icon="pi pi-pencil"
+              :label="t('common.edit')"
+              severity="secondary"
+              outlined
+              @click="editCardSet"
+            />
             <Button
               icon="pi pi-share-alt"
               :label="t('cardSets.share')"

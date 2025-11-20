@@ -136,6 +136,10 @@
                 <i class="pi pi-download"></i>
                 <span>{{ cardSet.download_count || 0 }} {{ t('globalCardSets.downloads') }}</span>
               </div>
+              <div v-if="cardSet.language" class="flex items-center gap-1">
+                <i class="pi pi-globe"></i>
+                <span>{{ cardSet.language.toUpperCase() }}</span>
+              </div>
             </div>
           </template>
 
@@ -185,6 +189,10 @@
           <div class="flex items-center gap-1">
             <i class="pi pi-download"></i>
             <span>{{ previewCardSet.download_count || 0 }} {{ t('globalCardSets.downloads') }}</span>
+          </div>
+          <div v-if="previewCardSet.language" class="flex items-center gap-1">
+            <i class="pi pi-globe"></i>
+            <span>{{ previewCardSet.language.toUpperCase() }}</span>
           </div>
         </div>
       </div>

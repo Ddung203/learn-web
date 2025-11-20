@@ -118,6 +118,7 @@ func (csc *CardSetController) CreateCardSet(c *gin.Context) {
 		UserID:      userObjID,
 		Title:       req.Title,
 		Description: req.Description,
+		Language:    req.Language,
 		Cards:       req.Cards,
 		Progress: models.StudyProgress{
 			TimesStdied: 0,
@@ -174,6 +175,9 @@ func (csc *CardSetController) UpdateCardSet(c *gin.Context) {
 	}
 	if req.Description != "" {
 		update["description"] = req.Description
+	}
+	if req.Language != "" {
+		update["language"] = req.Language
 	}
 	if req.Cards != nil {
 		// Generate IDs for new cards
@@ -391,6 +395,7 @@ func (csc *CardSetController) ImportFromGlobal(c *gin.Context) {
 		UserID:      userObjID,
 		Title:       sourceCardSet.Title,
 		Description: sourceCardSet.Description,
+		Language:    sourceCardSet.Language,
 		Cards:       sourceCardSet.Cards,
 		Progress: models.StudyProgress{
 			TimesStdied: 0,

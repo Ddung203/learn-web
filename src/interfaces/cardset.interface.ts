@@ -10,6 +10,7 @@ export interface ICardSet {
   id: string;
   title: string;
   description: string;
+  language?: string;
   cards: ICardSetCard[];
   created_at: string;
   updated_at: string;
@@ -21,6 +22,7 @@ export interface ICardSet {
 export interface ICreateCardSetParams {
   title: string;
   description: string;
+  language?: string;
   cards: Omit<ICardSetCard, 'id'>[];
 }
 

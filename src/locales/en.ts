@@ -29,7 +29,9 @@ export default {
   },
   studyModule: {
     title: 'Create a new set',
+    editTitle: 'Edit card set',
     createButton: 'Create',
+    updateButton: 'Update',
     addCard: 'Add Card',
     importMany: 'Import',
     terminology: 'Terminology',
@@ -39,6 +41,7 @@ export default {
     examplePlaceholder: 'Add an example sentence...',
     titlePlaceholder: 'Title',
     descriptionPlaceholder: 'Add a description...',
+    languagePlaceholder: 'Select Language',
     deleteTooltip: 'Delete',
     deleteAllTooltip: 'Delete All',
     cards: 'cards',
@@ -48,6 +51,9 @@ export default {
       atLeastOneCard: 'Please add at least 4 valid cards',
       createSuccess: 'Study module created successfully',
       createError: 'An error occurred while creating the study module',
+      updateSuccess: 'Card set updated successfully',
+      updateError: 'An error occurred while updating the card set',
+      loadError: 'Failed to load card set',
     },
   },
   importPopup: {

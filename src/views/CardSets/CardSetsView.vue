@@ -36,6 +36,11 @@
     router.push('/study-module');
   };
 
+  const editCardSet = (cardSetId: string, event: Event) => {
+    event.stopPropagation();
+    router.push(`/study-module/${cardSetId}`);
+  };
+
   const confirmDeleteCardSet = (cardSetId: string, cardSetTitle: string, event: Event) => {
     event.stopPropagation();
     cardSetToDelete.value = { id: cardSetId, title: cardSetTitle };
@@ -200,8 +205,12 @@
                   <i class="mr-1 pi pi-clone"></i>
                   {{ cardSet.cards.length }} {{ t('cardSets.cards') }}
                 </span>
-                <span v-if="cardSet.is_public" class="flex items-center gap-1 text-green-600">
+                <span v-if="cardSet.language" class="flex items-center gap-1 text-blue-600">
                   <i class="pi pi-globe"></i>
+                  {{ cardSet.language.toUpperCase() }}
+                </span>
+                <span v-if="cardSet.is_public" class="flex items-center gap-1 text-green-600">
+                  <i class="pi pi-check-circle"></i>
                   {{ t('cardSets.published') }}
                 </span>
               </div>
@@ -217,6 +226,14 @@
                 size="small"
                 class="flex-1"
                 @click.stop="goToCardSetDetail(cardSet.id)"
+              />
+              <Button
+                icon="pi pi-pencil"
+                severity="secondary"
+                size="small"
+                outlined
+                v-tooltip.top="t('common.edit')"
+                @click="editCardSet(cardSet.id, $event)"
               />
               <Button
                 :icon="cardSet.is_public ? 'pi pi-eye-slash' : 'pi pi-globe'"

@@ -25,6 +25,7 @@ type CardSet struct {
 	UserID        primitive.ObjectID `json:"user_id" bson:"user_id"`
 	Title         string             `json:"title" bson:"title" binding:"required"`
 	Description   string             `json:"description" bson:"description"`
+	Language      string             `json:"language" bson:"language"`
 	Cards         []CardSetCard      `json:"cards" bson:"cards"`
 	Progress      StudyProgress      `json:"progress" bson:"progress"`
 	IsPublic      bool               `json:"is_public" bson:"is_public"`
@@ -36,11 +37,13 @@ type CardSet struct {
 type CreateCardSetRequest struct {
 	Title       string        `json:"title" binding:"required"`
 	Description string        `json:"description"`
+	Language    string        `json:"language"`
 	Cards       []CardSetCard `json:"cards" binding:"required,min=1"`
 }
 
 type UpdateCardSetRequest struct {
 	Title       string        `json:"title"`
 	Description string        `json:"description"`
+	Language    string        `json:"language"`
 	Cards       []CardSetCard `json:"cards"`
 }

@@ -85,7 +85,7 @@ export const useCardSetStore = defineStore('cardset', () => {
   };
 
   // Add a new card set
-  const addCardSet = async (cardSet: { title: string; description: string; cards: any[] }) => {
+  const addCardSet = async (cardSet: { title: string; description: string; language?: string; cards: any[] }) => {
     loading.value = true;
     error.value = null;
     try {
@@ -176,6 +176,7 @@ export const useCardSetStore = defineStore('cardset', () => {
       const newCardSet = await addCardSet({
         title: cardSet.title + ' (Imported)',
         description: cardSet.description || '',
+        language: cardSet.language,
         cards: cardSet.cards.map((card) => ({
           terminology: card.terminology,
           define: card.define,
@@ -200,6 +201,7 @@ export const useCardSetStore = defineStore('cardset', () => {
     const shareData = {
       title: cardSet.title,
       description: cardSet.description,
+      language: cardSet.language,
       cards: cardSet.cards.map((card) => ({
         terminology: card.terminology,
         define: card.define,
@@ -231,6 +233,7 @@ export const useCardSetStore = defineStore('cardset', () => {
       const newCardSet = await addCardSet({
         title: shareData.title,
         description: shareData.description || '',
+        language: shareData.language,
         cards: shareData.cards,
       });
 

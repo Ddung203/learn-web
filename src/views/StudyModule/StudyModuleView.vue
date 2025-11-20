@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import { reactive, ref } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { reactive, ref, onMounted } from 'vue';
+  import { useRouter, useRoute } from 'vue-router';
   import { useToast } from 'primevue/usetoast';
   import HeaderThird from '~/components/HeaderThird.vue';
   import Loading from '~/components/Loading.vue';
@@ -11,9 +11,13 @@
   import { useCardSetStore } from '~/stores';
 
   const router = useRouter();
+  const route = useRoute();
   const toast = useToast();
   const { t } = useLocale();
   const cardSetStore = useCardSetStore();
+
+  const isEditMode = ref(false);
+  const editingCardSetId = ref<string | null>(null);
 
   const isLoading = ref(false);
   const isResendLoading = ref(false);
@@ -22,13 +26,26 @@
   const formData = reactive({
     title: '',
     description: '',
+    language: '',
     data: [{ terminology: '', define: '', example: '', image_url: '' }] as Array<{
+      id?: string;
       terminology: string;
       define: string;
       example?: string;
       image_url?: string;
     }>,
   });
+
+  const languageOptions = [
+    { label: 'English', value: 'en' },
+    { label: 'Tiếng Việt', value: 'vi' },
+    { label: '中文', value: 'zh' },
+    { label: '日本語', value: 'ja' },
+    { label: '한국어', value: 'ko' },
+    { label: 'Español', value: 'es' },
+    { label: 'Français', value: 'fr' },
+    { label: 'Deutsch', value: 'de' },
+  ];
 
   // Thêm mới 1 thẻ
   const addItem = () => {
@@ -70,6 +87,43 @@
     formData.data = [];
   };
 
+  // Load card set for editing
+  const loadCardSetForEdit = async () => {
+    const cardSetId = route.params.id as string;
+    if (!cardSetId) return;
+
+    try {
+      isLoading.value = true;
+      editingCardSetId.value = cardSetId;
+      isEditMode.value = true;
+
+      const cardSet = await cardSetStore.fetchCardSet(cardSetId);
+      
+      // Populate form with existing data
+      formData.title = cardSet.title;
+      formData.description = cardSet.description;
+      formData.language = cardSet.language || '';
+      formData.data = cardSet.cards.map(card => ({
+        id: card.id,
+        terminology: card.terminology,
+        define: card.define,
+        example: card.example || '',
+        image_url: card.image_url || '',
+      }));
+    } catch (error) {
+      toast.add({
+        severity: 'error',
+        summary: t('common.error'),
+        detail: t('studyModule.toast.loadError'),
+        life: 3000,
+      });
+      console.error('Error loading card set:', error);
+      router.push('/card-sets');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   // Save study module
   const saveStudyModule = async () => {
     if (!formData.title.trim()) {
@@ -100,41 +154,77 @@
     try {
       isLoading.value = true;
 
-      // Create card set using store
-      const newCardSet = await cardSetStore.addCardSet({
-        title: formData.title,
-        description: formData.description,
-        cards: validData,
-      });
+      if (isEditMode.value && editingCardSetId.value) {
+        // Update existing card set
+        const updatedCardSet = await cardSetStore.updateCardSet(editingCardSetId.value, {
+          title: formData.title,
+          description: formData.description,
+          language: formData.language,
+          cards: validData.map(card => ({
+            id: card.id || '',
+            terminology: card.terminology,
+            define: card.define,
+            example: card.example,
+            image_url: card.image_url,
+          })),
+        });
 
-      toast.add({
-        severity: 'success',
-        summary: t('common.success'),
-        detail: t('studyModule.toast.createSuccess'),
-        life: 3000,
-      });
+        toast.add({
+          severity: 'success',
+          summary: t('common.success'),
+          detail: t('studyModule.toast.updateSuccess'),
+          life: 3000,
+        });
 
-      // Reset form
-      formData.title = '';
-      formData.description = '';
-      formData.data = [];
+        // Navigate to the updated card set
+        setTimeout(() => {
+          router.push(`/card-sets/${updatedCardSet.id}`);
+        }, 1000);
+      } else {
+        // Create card set using store
+        const newCardSet = await cardSetStore.addCardSet({
+          title: formData.title,
+          description: formData.description,
+          language: formData.language,
+          cards: validData,
+        });
 
-      // Navigate to the new card set
-      setTimeout(() => {
-        router.push(`/card-sets/${newCardSet.id}`);
-      }, 1000);
+        toast.add({
+          severity: 'success',
+          summary: t('common.success'),
+          detail: t('studyModule.toast.createSuccess'),
+          life: 3000,
+        });
+
+        // Reset form
+        formData.title = '';
+        formData.description = '';
+        formData.language = '';
+        formData.data = [];
+
+        // Navigate to the new card set
+        setTimeout(() => {
+          router.push(`/card-sets/${newCardSet.id}`);
+        }, 1000);
+      }
     } catch (error) {
       toast.add({
         severity: 'error',
         summary: t('common.error'),
-        detail: t('studyModule.toast.createError'),
+        detail: isEditMode.value ? t('studyModule.toast.updateError') : t('studyModule.toast.createError'),
         life: 3000,
       });
-      console.error('Error creating study module:', error);
+      console.error('Error saving study module:', error);
     } finally {
       isLoading.value = false;
     }
   };
+
+  onMounted(() => {
+    if (route.params.id) {
+      loadCardSetForEdit();
+    }
+  });
 </script>
 
 <template>
@@ -155,10 +245,10 @@
       <!-- Header -->
       <div class="flex items-center justify-between bg-white form-header">
         <span class="text-xl font-bold lg:text-3xl">{{
-          t('studyModule.title')
+          isEditMode ? t('studyModule.editTitle') : t('studyModule.title')
         }}</span>
         <Button
-          :label="t('studyModule.createButton')"
+          :label="isEditMode ? t('studyModule.updateButton') : t('studyModule.createButton')"
           @click="saveStudyModule"
           :disabled="isLoading"
         />
@@ -181,8 +271,8 @@
       </div>
 
       <!-- Import Buttons -->
-      <div class="flex justify-between gap-2 mt-8 lg:gap-0">
-        <div class="flex gap-2 lg:gap-5">
+      <div class="flex justify-between items-center gap-2 mt-8 lg:gap-4">
+        <div class="flex gap-2 lg:gap-5 flex-wrap items-center">
           <Button
             icon="pi pi-plus"
             severity="success"
@@ -194,6 +284,14 @@
             severity="secondary"
             :label="t('studyModule.importMany')"
             @click="addItems"
+          />
+          <Dropdown
+            v-model="formData.language"
+            :options="languageOptions"
+            optionLabel="label"
+            optionValue="value"
+            :placeholder="t('studyModule.languagePlaceholder')"
+            class="w-48"
           />
         </div>
         <Button

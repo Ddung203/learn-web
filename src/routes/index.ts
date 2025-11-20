@@ -44,6 +44,16 @@ const routes: AppRouteRecord[] = [
     },
   },
   {
+    path: '/study-module/:id',
+    name: 'study-module-edit',
+    component: () => import('../views/StudyModule/StudyModuleView.vue'),
+    meta: {
+      requiredAuth: true,
+      layout: true,
+      title: 'Chỉnh sửa bộ thẻ',
+    },
+  },
+  {
     path: '/card-sets',
     name: 'card-sets',
     component: () => import('../views/CardSets/CardSetsView.vue'),
