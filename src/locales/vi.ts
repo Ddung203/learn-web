@@ -158,7 +158,7 @@ export default {
     delimiter: 'Dấu phân cách',
     comma: 'Dấu phẩy (,)',
     semicolon: 'Dấu chấm phẩy (;)',
-    custom: 'Tuỳ chỉnh',
+    customDelimiter: 'Tuỳ chỉnh',
     customPlaceholder: 'Ví dụ: |',
     placeholder:
       'Thuật ngữ 1, Định nghĩa 1\nThuật ngữ 2, Định nghĩa 2\nThuật ngữ 3, Định nghĩa 3',

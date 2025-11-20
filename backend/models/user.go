@@ -21,7 +21,7 @@ type User struct {
 
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,max=255"`
-	Password string `json:"password" binding:"required,min=6,max=100"`
+	Password string `json:"password" binding:"required,min=1,max=100"`
 	FullName string `json:"full_name" binding:"max=100"`
 }
 

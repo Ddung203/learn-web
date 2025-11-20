@@ -4,33 +4,38 @@
   import { useLocale } from '~/composables/useLocale';
 
   const { t } = useLocale();
-  
+
   const props = defineProps<{
     visible: boolean;
   }>();
   const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void;
-    (e: 'import', cards: Array<{ 
-      terminology: string; 
-      define: string; 
-      example?: string; 
-      image_url?: string;
-      part_of_speech?: string;
-      phonetic?: string;
-    }>): void;
+    (
+      e: 'import',
+      cards: Array<{
+        terminology: string;
+        define: string;
+        example?: string;
+        image_url?: string;
+        part_of_speech?: string;
+        phonetic?: string;
+      }>
+    ): void;
   }>();
 
   const inputData = ref('');
   const delimiter = ref(',');
   const customDelimiter = ref('');
-  const parsedCards = ref<Array<{ 
-    terminology: string; 
-    define: string; 
-    example?: string; 
-    image_url?: string;
-    part_of_speech?: string;
-    phonetic?: string;
-  }>>([]);
+  const parsedCards = ref<
+    Array<{
+      terminology: string;
+      define: string;
+      example?: string;
+      image_url?: string;
+      part_of_speech?: string;
+      phonetic?: string;
+    }>
+  >([]);
 
   const parseInputData = () => {
     if (!inputData.value.trim()) {
@@ -38,7 +43,10 @@
       return;
     }
 
-    const activeDelimiter = delimiter.value === 'custom' ? customDelimiter.value : delimiter.value;
+    const activeDelimiter =
+      delimiter.value === 'custom-delimiter'
+        ? customDelimiter.value
+        : delimiter.value;
     if (!activeDelimiter) {
       parsedCards.value = [];
       return;
@@ -54,7 +62,14 @@
         const part_of_speech = parts[3] || '';
         const phonetic = parts[4] || '';
 
-        return { terminology, define, example, image_url: '', part_of_speech, phonetic };
+        return {
+          terminology,
+          define,
+          example,
+          image_url: '',
+          part_of_speech,
+          phonetic,
+        };
       })
       .filter((card) => card.terminology && card.define);
   };
@@ -64,7 +79,13 @@
   // Update card data
   const updateCard = (
     index: number,
-    field: 'terminology' | 'define' | 'example' | 'image_url' | 'part_of_speech' | 'phonetic',
+    field:
+      | 'terminology'
+      | 'define'
+      | 'example'
+      | 'image_url'
+      | 'part_of_speech'
+      | 'phonetic',
     value: string
   ) => {
     if (parsedCards.value[index]) {
@@ -102,8 +123,10 @@
     :modal="true"
     :draggable="false"
   >
-    <span class="block mb-5 p-text-secondary">{{ t('importPopup.instruction') }}</span>
-    
+    <span class="block mb-5 p-text-secondary">{{
+      t('importPopup.instruction')
+    }}</span>
+
     <!-- Delimiter Selection -->
     <div class="flex gap-3 mb-3 align-items-center">
       <label class="font-semibold">{{ t('importPopup.delimiter') }}:</label>
@@ -112,24 +135,29 @@
           :label="t('importPopup.comma')"
           :severity="delimiter === ',' ? 'primary' : 'secondary'"
           size="small"
-          @click="delimiter = ','; parseInputData()"
+          @click="
+            delimiter = ',';
+            parseInputData();
+          "
         />
         <Button
           :label="t('importPopup.semicolon')"
           :severity="delimiter === ';' ? 'primary' : 'secondary'"
           size="small"
-          @click="delimiter = ';'; parseInputData()"
+          @click="
+            delimiter = ';';
+            parseInputData();
+          "
         />
         <Button
-          :label="t('importPopup.custom')"
-          :severity="delimiter === 'custom' ? 'primary' : 'secondary'"
+          :label="t('importPopup.customDelimiter')"
+          :severity="delimiter === 'custom-delimiter' ? 'primary' : 'secondary'"
           size="small"
-          @click="delimiter = 'custom'"
+          @click="delimiter = 'custom-delimiter'"
         />
         <InputText
-          v-if="delimiter === 'custom'"
+          v-if="delimiter === 'custom-delimiter'"
           v-model="customDelimiter"
-          :placeholder="t('importPopup.customPlaceholder')"
           class="w-32"
           @input="parseInputData"
         />

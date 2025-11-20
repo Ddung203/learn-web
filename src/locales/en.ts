@@ -126,7 +126,7 @@ export default {
     delimiter: 'Delimiter',
     comma: 'Comma (,)',
     semicolon: 'Semicolon (;)',
-    custom: 'Custom',
+    customDelimiter: 'Custom',
     customPlaceholder: 'e.g., |',
     placeholder:
       'Terminology 1, Definition 1\nTerminology 2, Definition 2\nTerminology 3, Definition 3',
