@@ -9,6 +9,7 @@
   import ScrollToTop from '~/components/ScrollToTop.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useCardSetStore } from '~/stores';
+  import cardSetService from '~/services/cardset.service';
 
   const router = useRouter();
   const route = useRoute();
@@ -22,17 +23,20 @@
   const isLoading = ref(false);
   const isResendLoading = ref(false);
   const isShowPopup = ref(false);
+  const autoGeneratePhonetics = ref(false);
 
   const formData = reactive({
     title: '',
     description: '',
     language: '',
-    data: [{ terminology: '', define: '', example: '', image_url: '' }] as Array<{
+    data: [{ terminology: '', define: '', example: '', image_url: '', part_of_speech: '', phonetic: '' }] as Array<{
       id?: string;
       terminology: string;
       define: string;
       example?: string;
       image_url?: string;
+      part_of_speech?: string;
+      phonetic?: string;
     }>,
   });
 
@@ -49,7 +53,7 @@
 
   // Thêm mới 1 thẻ
   const addItem = () => {
-    formData.data.push({ terminology: '', define: '', example: '', image_url: '' });
+    formData.data.push({ terminology: '', define: '', example: '', image_url: '', part_of_speech: '', phonetic: '' });
   };
   const addItems = () => {
     isShowPopup.value = true;
@@ -57,9 +61,22 @@
 
   // Handle imported cards from popup
   const handleImportCards = (
-    cards: Array<{ terminology: string; define: string; example?: string; image_url?: string }>
+    cards: Array<{ 
+      terminology: string; 
+      define: string; 
+      example?: string; 
+      image_url?: string;
+      part_of_speech?: string;
+      phonetic?: string;
+    }>
   ) => {
-    formData.data.push(...cards.map(card => ({ ...card, example: card.example || '', image_url: card.image_url || '' })));
+    formData.data.push(...cards.map(card => ({ 
+      ...card, 
+      example: card.example || '', 
+      image_url: card.image_url || '', 
+      part_of_speech: card.part_of_speech || '', 
+      phonetic: card.phonetic || '' 
+    })));
     toast.add({
       severity: 'success',
       summary: t('common.success'),
@@ -71,7 +88,7 @@
   // Cập nhật dữ liệu của 1 thẻ
   const updateItem = (
     index: number,
-    field: 'terminology' | 'define' | 'example' | 'image_url',
+    field: 'terminology' | 'define' | 'example' | 'image_url' | 'part_of_speech' | 'phonetic',
     value: string
   ) => {
     formData.data[index][field] = value;
@@ -85,6 +102,31 @@
   // Xóa tất cả
   const clearAll = () => {
     formData.data = [];
+  };
+
+  // Generate phonetics (called during update if checkbox is checked)
+  const generatePhoneticsForCards = async () => {
+    if (!editingCardSetId.value) return;
+
+    try {
+      const updatedCardSet = await cardSetService.generatePhonetics(editingCardSetId.value);
+      
+      // Update form data with generated phonetics
+      formData.data = updatedCardSet.cards.map(card => ({
+        id: card.id,
+        terminology: card.terminology,
+        define: card.define,
+        example: card.example || '',
+        image_url: card.image_url || '',
+        part_of_speech: card.part_of_speech || '',
+        phonetic: card.phonetic || '',
+      }));
+
+      return true;
+    } catch (error) {
+      console.error('Error generating phonetics:', error);
+      return false;
+    }
   };
 
   // Load card set for editing
@@ -109,6 +151,8 @@
         define: card.define,
         example: card.example || '',
         image_url: card.image_url || '',
+        part_of_speech: card.part_of_speech || '',
+        phonetic: card.phonetic || '',
       }));
     } catch (error) {
       toast.add({
@@ -166,15 +210,37 @@
             define: card.define,
             example: card.example,
             image_url: card.image_url,
+            part_of_speech: card.part_of_speech,
+            phonetic: card.phonetic,
           })),
         });
 
-        toast.add({
-          severity: 'success',
-          summary: t('common.success'),
-          detail: t('studyModule.toast.updateSuccess'),
-          life: 3000,
-        });
+        // Auto-generate phonetics if checkbox is checked and language is English
+        if (autoGeneratePhonetics.value && formData.language === 'en') {
+          const phoneticSuccess = await generatePhoneticsForCards();
+          if (phoneticSuccess) {
+            toast.add({
+              severity: 'success',
+              summary: t('common.success'),
+              detail: t('studyModule.toast.updateSuccess') + '. ' + t('studyModule.toast.generatePhoneticsSuccess'),
+              life: 3000,
+            });
+          } else {
+            toast.add({
+              severity: 'success',
+              summary: t('common.success'),
+              detail: t('studyModule.toast.updateSuccess'),
+              life: 3000,
+            });
+          }
+        } else {
+          toast.add({
+            severity: 'success',
+            summary: t('common.success'),
+            detail: t('studyModule.toast.updateSuccess'),
+            life: 3000,
+          });
+        }
 
         // Navigate to the updated card set
         setTimeout(() => {
@@ -293,6 +359,16 @@
             :placeholder="t('studyModule.languagePlaceholder')"
             class="w-48"
           />
+          <div v-if="isEditMode && formData.language === 'en'" class="flex items-center gap-2">
+            <Checkbox 
+              v-model="autoGeneratePhonetics" 
+              inputId="autoGeneratePhonetics" 
+              :binary="true"
+            />
+            <label for="autoGeneratePhonetics" class="text-sm cursor-pointer">
+              {{ t('studyModule.autoGeneratePhonetics') }}
+            </label>
+          </div>
         </div>
         <Button
           icon="pi pi-trash"

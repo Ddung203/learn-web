@@ -3,7 +3,9 @@ package controllers
 import (
 	"context"
 	"learn-backend/models"
+	"learn-backend/services"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -428,4 +430,94 @@ func (csc *CardSetController) ImportFromGlobal(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, newCardSet)
+}
+
+func (csc *CardSetController) GeneratePhonetics(c *gin.Context) {
+	userID := c.GetString("user_id")
+	cardSetID := c.Param("id")
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	cardSetObjID, err := primitive.ObjectIDFromHex(cardSetID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid card set ID"})
+		return
+	}
+
+	cardSetsCollection := csc.db.Collection("cardsets")
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	// Get the card set
+	var cardSet models.CardSet
+	err = cardSetsCollection.FindOne(ctx, bson.M{
+		"_id":     cardSetObjID,
+		"user_id": userObjID,
+	}).Decode(&cardSet)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Card set not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch card set"})
+		return
+	}
+
+	// Check if language is English
+	if cardSet.Language != "en" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Phonetic generation is only supported for English language"})
+		return
+	}
+
+	// Create phonetic service
+	phoneticService := services.NewPhoneticService()
+
+	// Use goroutines to process cards in parallel with a limit
+	var wg sync.WaitGroup
+	semaphore := make(chan struct{}, 10) // Limit to 10 concurrent requests
+
+	for i := range cardSet.Cards {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			semaphore <- struct{}{}        // Acquire semaphore
+			defer func() { <-semaphore }() // Release semaphore
+
+			card := &cardSet.Cards[index]
+			// Only generate phonetics for cards that don't already have them
+			if card.Terminology != "" && card.Phonetic == "" {
+				result := phoneticService.GetPhonetic(card.Terminology)
+				if result.Phonetic != "" {
+					card.Phonetic = result.Phonetic
+				}
+				if result.PartOfSpeech != "" && card.PartOfSpeech == "" {
+					card.PartOfSpeech = result.PartOfSpeech
+				}
+			}
+		}(i)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
+	// Update the card set in database
+	update := bson.M{
+		"$set": bson.M{
+			"cards":      cardSet.Cards,
+			"updated_at": time.Now(),
+		},
+	}
+
+	_, err = cardSetsCollection.UpdateOne(ctx, bson.M{"_id": cardSetObjID}, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card set"})
+		return
+	}
+
+	c.JSON(http.StatusOK, cardSet)
 }

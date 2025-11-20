@@ -4,6 +4,8 @@ export interface ICardSetCard {
   define: string;
   example?: string;
   image_url?: string;
+  part_of_speech?: string;
+  phonetic?: string;
 }
 
 export interface ICardSet {

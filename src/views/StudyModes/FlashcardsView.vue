@@ -494,6 +494,15 @@
                     aria-label="Play pronunciation"
                   />
                 </div>
+                
+                <!-- Phonetic and Part of Speech (for terminology) -->
+                <div v-if="showingTerm && (currentCard.phonetic || currentCard.part_of_speech)" class="flex items-center justify-center gap-3 text-sm text-gray-600 mb-2">
+                  <span v-if="currentCard.phonetic" class="italic">{{ currentCard.phonetic }}</span>
+                  <span v-if="currentCard.part_of_speech" class="px-2 py-1 bg-gray-100 rounded text-xs font-medium">
+                    {{ currentCard.part_of_speech }}
+                  </span>
+                </div>
+                
                 <div class="mt-6 text-sm text-gray-400">
                   <i class="mr-2 pi pi-replay"></i>
                   {{ t('studyModes.flashcards.clickToFlip') }}
@@ -518,7 +527,7 @@
                       : t('studyModule.terminology')
                   }}
                 </div>
-                <div class="flex items-center justify-center gap-3">
+                <div class="flex items-center justify-center gap-3 mb-2">
                   <div class="text-3xl font-semibold text-blue-900 break-words">
                     {{
                       showingTerm ? currentCard.define : currentCard.terminology
@@ -534,6 +543,15 @@
                     aria-label="Play pronunciation"
                   />
                 </div>
+                
+                <!-- Phonetic and Part of Speech (for terminology on back) -->
+                <div v-if="!showingTerm && (currentCard.phonetic || currentCard.part_of_speech)" class="flex items-center justify-center gap-3 text-sm text-blue-700 mb-2">
+                  <span v-if="currentCard.phonetic" class="italic">{{ currentCard.phonetic }}</span>
+                  <span v-if="currentCard.part_of_speech" class="px-2 py-1 bg-blue-100 rounded text-xs font-medium">
+                    {{ currentCard.part_of_speech }}
+                  </span>
+                </div>
+                
                 <!-- Example -->
                 <div
                   v-if="currentCard.example"

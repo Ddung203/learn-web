@@ -427,8 +427,16 @@
                     </span>
                   </div>
                   <div class="mt-2 text-sm text-gray-700">
-                    <span class="font-medium">{{ t('studyModes.listen.word') }}:</span>
-                    {{ currentQuestion.card.terminology }}
+                    <div class="mb-1">
+                      <span class="font-medium">{{ t('studyModes.listen.word') }}:</span>
+                      {{ currentQuestion.card.terminology }}
+                    </div>
+                    <div v-if="currentQuestion.card.phonetic || currentQuestion.card.part_of_speech" class="flex items-center justify-center gap-2 text-xs text-gray-600">
+                      <span v-if="currentQuestion.card.phonetic" class="italic">{{ currentQuestion.card.phonetic }}</span>
+                      <span v-if="currentQuestion.card.part_of_speech" class="px-2 py-1 bg-gray-100 rounded font-medium">
+                        {{ currentQuestion.card.part_of_speech }}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div v-else class="p-4 border-2 border-red-500 rounded-lg bg-red-50">
@@ -442,6 +450,12 @@
                     <div class="mb-1">
                       <span class="font-medium">{{ t('studyModes.listen.word') }}:</span>
                       {{ currentQuestion.card.terminology }}
+                    </div>
+                    <div v-if="currentQuestion.card.phonetic || currentQuestion.card.part_of_speech" class="flex items-center justify-center gap-2 text-xs text-gray-600 mb-1">
+                      <span v-if="currentQuestion.card.phonetic" class="italic">{{ currentQuestion.card.phonetic }}</span>
+                      <span v-if="currentQuestion.card.part_of_speech" class="px-2 py-1 bg-gray-100 rounded font-medium">
+                        {{ currentQuestion.card.part_of_speech }}
+                      </span>
                     </div>
                     <div class="text-green-700">
                       <span class="font-medium">{{ t('studyModes.listen.correctAnswer') }}:</span>

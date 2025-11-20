@@ -10,11 +10,25 @@
   }>();
   const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void;
-    (e: 'import', cards: Array<{ terminology: string; define: string; example?: string; image_url?: string }>): void;
+    (e: 'import', cards: Array<{ 
+      terminology: string; 
+      define: string; 
+      example?: string; 
+      image_url?: string;
+      part_of_speech?: string;
+      phonetic?: string;
+    }>): void;
   }>();
 
   const inputData = ref('');
-  const parsedCards = ref<Array<{ terminology: string; define: string; example?: string; image_url?: string }>>([]);
+  const parsedCards = ref<Array<{ 
+    terminology: string; 
+    define: string; 
+    example?: string; 
+    image_url?: string;
+    part_of_speech?: string;
+    phonetic?: string;
+  }>>([]);
 
   // Parse input data: each line should be "Term, Definition" or "Term, Definition, Example"
   const parseInputData = () => {
@@ -31,7 +45,7 @@
         const define = parts[1] || '';
         const example = parts[2] || '';
 
-        return { terminology, define, example, image_url: '' };
+        return { terminology, define, example, image_url: '', part_of_speech: '', phonetic: '' };
       })
       .filter((card) => card.terminology && card.define);
   };
@@ -41,7 +55,7 @@
   // Update card data
   const updateCard = (
     index: number,
-    field: 'terminology' | 'define' | 'example' | 'image_url',
+    field: 'terminology' | 'define' | 'example' | 'image_url' | 'part_of_speech' | 'phonetic',
     value: string
   ) => {
     if (parsedCards.value[index]) {

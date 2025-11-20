@@ -58,6 +58,7 @@ func SetupRoutes(router *gin.Engine, db *mongo.Database, cfg *config.Config) {
 			cardSets.DELETE("/:id", cardSetController.DeleteCardSet)
 			cardSets.POST("/:id/publish", cardSetController.TogglePublish)
 			cardSets.POST("/:id/import", cardSetController.ImportFromGlobal)
+			cardSets.POST("/:id/generate-phonetics", cardSetController.GeneratePhonetics)
 		}
 
 		// Statistics

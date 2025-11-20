@@ -729,7 +729,7 @@
                 />
               </div>
               
-              <div class="flex items-center justify-center gap-3 mb-6">
+              <div class="flex items-center justify-center gap-3 mb-2">
                 <div class="text-3xl font-semibold text-gray-900">
                   {{ currentCard.card.terminology }}
                 </div>
@@ -742,6 +742,14 @@
                   class="text-orange-500 hover:bg-orange-50"
                   aria-label="Play pronunciation"
                 />
+              </div>
+              
+              <!-- Phonetic and Part of Speech -->
+              <div v-if="currentCard.card.phonetic || currentCard.card.part_of_speech" class="flex items-center justify-center gap-3 text-sm text-gray-600 mb-6">
+                <span v-if="currentCard.card.phonetic" class="italic">{{ currentCard.card.phonetic }}</span>
+                <span v-if="currentCard.card.part_of_speech" class="px-2 py-1 bg-gray-100 rounded text-xs font-medium">
+                  {{ currentCard.card.part_of_speech }}
+                </span>
               </div>
 
               <!-- Example -->

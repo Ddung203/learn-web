@@ -16,6 +16,7 @@
     userAnswer?: string;
     type: 'multiple-choice' | 'write';
     questionText: string;
+    isTermToDefDirection: boolean; // true if showing term, asking for def
   }
 
   const route = useRoute();
@@ -106,6 +107,7 @@
 
       return {
         card,
+        isTermToDefDirection,
         options,
         correctAnswer,
         type: questionType,
@@ -443,7 +445,7 @@
                   />
                 </div>
                 
-                <div class="flex items-center justify-center gap-3">
+                <div class="flex items-center justify-center gap-3 mb-2">
                   <div class="text-2xl font-semibold text-gray-900">
                     {{ currentQuestion.questionText }}
                   </div>
@@ -456,6 +458,15 @@
                     class="text-green-500 hover:bg-green-50"
                     aria-label="Play pronunciation"
                   />
+                </div>
+                
+                <!-- Phonetic and Part of Speech (only for terminology) -->
+                <div v-if="currentQuestion.isTermToDefDirection && (currentQuestion.card.phonetic || currentQuestion.card.part_of_speech)" 
+                     class="flex items-center justify-center gap-3 text-sm text-gray-600">
+                  <span v-if="currentQuestion.card.phonetic" class="italic">{{ currentQuestion.card.phonetic }}</span>
+                  <span v-if="currentQuestion.card.part_of_speech" class="px-2 py-1 bg-gray-100 rounded text-xs font-medium">
+                    {{ currentQuestion.card.part_of_speech }}
+                  </span>
                 </div>
               </div>
 

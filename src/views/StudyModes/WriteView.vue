@@ -380,7 +380,7 @@
                 />
               </div>
               
-              <div class="flex items-center justify-center gap-3 mb-6">
+              <div class="flex items-center justify-center gap-3 mb-2">
                 <div class="text-3xl font-semibold text-gray-900">
                   {{ studyDirection === 'term-to-def' ? currentQuestion.card.terminology : currentQuestion.card.define }}
                 </div>
@@ -393,6 +393,15 @@
                   class="text-purple-500 hover:bg-purple-50"
                   aria-label="Play pronunciation"
                 />
+              </div>
+              
+              <!-- Phonetic and Part of Speech (only for terminology) -->
+              <div v-if="studyDirection === 'term-to-def' && (currentQuestion.card.phonetic || currentQuestion.card.part_of_speech)" 
+                   class="flex items-center justify-center gap-3 text-sm text-gray-600 mb-6">
+                <span v-if="currentQuestion.card.phonetic" class="italic">{{ currentQuestion.card.phonetic }}</span>
+                <span v-if="currentQuestion.card.part_of_speech" class="px-2 py-1 bg-gray-100 rounded text-xs font-medium">
+                  {{ currentQuestion.card.part_of_speech }}
+                </span>
               </div>
 
               <!-- Input -->

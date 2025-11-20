@@ -7,14 +7,21 @@
   
   const props = defineProps<{
     index: number;
-    item: { terminology: string; define: string; example?: string; image_url?: string };
+    item: { 
+      terminology: string; 
+      define: string; 
+      example?: string; 
+      image_url?: string;
+      part_of_speech?: string;
+      phonetic?: string;
+    };
   }>();
 
   const emits = defineEmits<{
     (
       e: 'update',
       index: number,
-      field: 'terminology' | 'define' | 'example' | 'image_url',
+      field: 'terminology' | 'define' | 'example' | 'image_url' | 'part_of_speech' | 'phonetic',
       value: string
     ): void;
     (e: 'remove', index: number): void;
@@ -22,7 +29,7 @@
 
   const showImageSearch = ref(false);
 
-  const handleInput = (field: 'terminology' | 'define' | 'example' | 'image_url', value: string) => {
+  const handleInput = (field: 'terminology' | 'define' | 'example' | 'image_url' | 'part_of_speech' | 'phonetic', value: string) => {
     emits('update', props.index, field, value);
   };
 
@@ -119,6 +126,43 @@
           class="uppercase text-sm font-bold text-[#939bb4]"
           >{{ t('studyModule.example') }} ({{ t('studyModule.optional') }})</label
         >
+      </div>
+
+      <!-- Part of Speech and Phonetic Fields -->
+      <div class="flex gap-5">
+        <div class="w-full">
+          <InputText
+            type="text"
+            class="w-full"
+            :value="item.part_of_speech"
+            @input="
+              handleInput('part_of_speech', ($event.target as HTMLInputElement).value)
+            "
+            :placeholder="t('studyModule.partOfSpeechPlaceholder')"
+          />
+          <label
+            for="part_of_speech"
+            class="uppercase text-sm font-bold text-[#939bb4]"
+            >{{ t('studyModule.partOfSpeech') }} ({{ t('studyModule.optional') }})</label
+          >
+        </div>
+
+        <div class="w-full">
+          <InputText
+            type="text"
+            class="w-full"
+            :value="item.phonetic"
+            @input="
+              handleInput('phonetic', ($event.target as HTMLInputElement).value)
+            "
+            :placeholder="t('studyModule.phoneticPlaceholder')"
+          />
+          <label
+            for="phonetic"
+            class="uppercase text-sm font-bold text-[#939bb4]"
+            >{{ t('studyModule.phonetic') }} ({{ t('studyModule.optional') }})</label
+          >
+        </div>
       </div>
 
       <!-- Image Section -->

@@ -7,11 +7,13 @@ import (
 )
 
 type CardSetCard struct {
-	ID          string `json:"id" bson:"id"`
-	Terminology string `json:"terminology" bson:"terminology" binding:"required"`
-	Define      string `json:"define" bson:"define" binding:"required"`
-	Example     string `json:"example,omitempty" bson:"example,omitempty"`
-	ImageURL    string `json:"image_url,omitempty" bson:"image_url,omitempty"`
+	ID           string `json:"id" bson:"id"`
+	Terminology  string `json:"terminology" bson:"terminology" binding:"required"`
+	Define       string `json:"define" bson:"define" binding:"required"`
+	Example      string `json:"example,omitempty" bson:"example,omitempty"`
+	ImageURL     string `json:"image_url,omitempty" bson:"image_url,omitempty"`
+	PartOfSpeech string `json:"part_of_speech,omitempty" bson:"part_of_speech,omitempty"`
+	Phonetic     string `json:"phonetic,omitempty" bson:"phonetic,omitempty"`
 }
 
 type StudyProgress struct {

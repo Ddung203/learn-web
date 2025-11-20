@@ -47,6 +47,10 @@ class CardSetService {
   async importFromGlobal(id: string): Promise<ICardSet> {
     return await apiService.post<ICardSet>(`/cardsets/${id}/import`);
   }
+
+  async generatePhonetics(id: string): Promise<ICardSet> {
+    return await apiService.post<ICardSet>(`/cardsets/${id}/generate-phonetics`);
+  }
 }
 
 export default new CardSetService();
