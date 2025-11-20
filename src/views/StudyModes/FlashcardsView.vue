@@ -7,6 +7,7 @@
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
   import type { ICreateSessionRequest } from '~/interfaces/statistics.interface';
+  import { ttsService } from '~/services';
 
   const route = useRoute();
   const router = useRouter();
@@ -32,6 +33,7 @@
   const startTime = ref<number>(Date.now());
   const viewedCards = ref<Set<string>>(new Set());
   const sessionRecorded = ref(false);
+  const isPlayingAudio = ref(false);
 
   const currentCard = computed(() => {
     if (!cardSet.value?.cards || cardSet.value.cards.length === 0) return null;
@@ -91,6 +93,23 @@
   const goBack = async () => {
     await recordStudySession();
     router.push(`/card-sets/${route.params.id}`);
+  };
+
+  const playCurrentText = async () => {
+    if (!currentCard.value || isPlayingAudio.value) return;
+
+    const textToPlay = isFlipped.value 
+      ? (showingTerm.value ? currentCard.value.define : currentCard.value.terminology)
+      : (showingTerm.value ? currentCard.value.terminology : currentCard.value.define);
+
+    try {
+      isPlayingAudio.value = true;
+      await ttsService.playText(textToPlay);
+    } catch (error) {
+      console.error('Failed to play audio:', error);
+    } finally {
+      isPlayingAudio.value = false;
+    }
   };
 
   const recordStudySession = async () => {
@@ -459,10 +478,21 @@
                   />
                 </div>
                 
-                <div class="text-3xl font-semibold break-words">
-                  {{
-                    showingTerm ? currentCard.terminology : currentCard.define
-                  }}
+                <div class="flex items-center justify-center gap-3 mb-2">
+                  <div class="text-3xl font-semibold break-words">
+                    {{
+                      showingTerm ? currentCard.terminology : currentCard.define
+                    }}
+                  </div>
+                  <Button
+                    icon="pi pi-volume-up"
+                    rounded
+                    text
+                    :loading="isPlayingAudio"
+                    @click.stop="playCurrentText"
+                    class="text-blue-500 hover:bg-blue-50"
+                    aria-label="Play pronunciation"
+                  />
                 </div>
                 <div class="mt-6 text-sm text-gray-400">
                   <i class="mr-2 pi pi-replay"></i>
@@ -488,10 +518,21 @@
                       : t('studyModule.terminology')
                   }}
                 </div>
-                <div class="text-3xl font-semibold text-blue-900 break-words">
-                  {{
-                    showingTerm ? currentCard.define : currentCard.terminology
-                  }}
+                <div class="flex items-center justify-center gap-3">
+                  <div class="text-3xl font-semibold text-blue-900 break-words">
+                    {{
+                      showingTerm ? currentCard.define : currentCard.terminology
+                    }}
+                  </div>
+                  <Button
+                    icon="pi pi-volume-up"
+                    rounded
+                    text
+                    :loading="isPlayingAudio"
+                    @click.stop="playCurrentText"
+                    class="text-blue-600 hover:bg-blue-100"
+                    aria-label="Play pronunciation"
+                  />
                 </div>
               </div>
             </div>

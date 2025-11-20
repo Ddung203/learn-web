@@ -7,6 +7,7 @@
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
   import type { ICreateSessionRequest } from '~/interfaces/statistics.interface';
+  import { ttsService } from '~/services';
 
   interface TestQuestion {
     card: ICardSetCard;
@@ -31,6 +32,7 @@
   const showResults = ref(false);
   const startTime = ref<number>(0);
   const endTime = ref<number>(0);
+  const isPlayingAudio = ref(false);
 
   const currentQuestion = computed(() => {
     if (questions.value.length === 0) return null;
@@ -208,6 +210,19 @@
 
   const goBack = () => {
     router.push(`/card-sets/${route.params.id}`);
+  };
+
+  const playQuestion = async () => {
+    if (!currentQuestion.value || isPlayingAudio.value) return;
+
+    try {
+      isPlayingAudio.value = true;
+      await ttsService.playText(currentQuestion.value.questionText);
+    } catch (error) {
+      console.error('Failed to play audio:', error);
+    } finally {
+      isPlayingAudio.value = false;
+    }
   };
 
   const isWriteAnswerCorrect = computed(() => {
@@ -428,8 +443,19 @@
                   />
                 </div>
                 
-                <div class="text-2xl font-semibold text-gray-900">
-                  {{ currentQuestion.questionText }}
+                <div class="flex items-center justify-center gap-3">
+                  <div class="text-2xl font-semibold text-gray-900">
+                    {{ currentQuestion.questionText }}
+                  </div>
+                  <Button
+                    icon="pi pi-volume-up"
+                    rounded
+                    text
+                    :loading="isPlayingAudio"
+                    @click="playQuestion"
+                    class="text-green-500 hover:bg-green-50"
+                    aria-label="Play pronunciation"
+                  />
                 </div>
               </div>
 

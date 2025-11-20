@@ -27,7 +27,7 @@ export interface IUpdateCardSetParams extends Partial<ICreateCardSetParams> {
   id: string;
 }
 
-export type StudyMode = 'flashcards' | 'test' | 'write' | 'learn';
+export type StudyMode = 'flashcards' | 'test' | 'write' | 'learn' | 'listen';
 
 export interface IStudyProgress {
   card_id: string;

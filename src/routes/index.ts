@@ -124,6 +124,16 @@ const routes: AppRouteRecord[] = [
     },
   },
   {
+    path: '/card-sets/:id/listen',
+    name: 'study-listen',
+    component: () => import('../views/StudyModes/ListenView.vue'),
+    meta: {
+      requiredAuth: true,
+      layout: true,
+      title: 'Listen',
+    },
+  },
+  {
     path: '/statistics',
     name: 'statistics',
     component: () => import('../views/Statistics/StatisticsView.vue'),

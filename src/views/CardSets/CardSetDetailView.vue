@@ -47,6 +47,13 @@
       description: t('studyModes.learn.description'),
       color: '#f59e0b', // amber
     },
+    {
+      id: 'listen' as StudyMode,
+      label: t('studyModes.listen.title'),
+      icon: 'pi-volume-up',
+      description: t('studyModes.listen.description'),
+      color: '#6366f1', // indigo
+    },
   ]);
 
   const loadCardSet = () => {
@@ -134,7 +141,7 @@
       </div>
 
       <!-- Study Mode Selector -->
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card
           v-for="mode in studyModes"
           :key="mode.id"

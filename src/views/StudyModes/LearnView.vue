@@ -7,6 +7,7 @@
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
   import type { ICreateSessionRequest } from '~/interfaces/statistics.interface';
+  import { ttsService } from '~/services';
 
   type LearningMode = 'write' | 'multipleChoice' | 'both';
   type QuestionType = 'write' | 'multipleChoice';
@@ -41,6 +42,7 @@
   // Statistics tracking
   const startTime = ref<number>(0);
   const sessionRecorded = ref(false);
+  const isPlayingAudio = ref(false);
 
   const progress = computed(() => {
     const total = queue.value.length + masteredCards.value.length;
@@ -428,6 +430,19 @@
     cardSet.value = foundCardSet;
   };
 
+  const playTerminology = async () => {
+    if (!currentCard.value || isPlayingAudio.value) return;
+
+    try {
+      isPlayingAudio.value = true;
+      await ttsService.playText(currentCard.value.card.terminology);
+    } catch (error) {
+      console.error('Failed to play audio:', error);
+    } finally {
+      isPlayingAudio.value = false;
+    }
+  };
+
   // Keyboard shortcuts
   const handleKeyDown = (event: KeyboardEvent) => {
     // Ignore if user is typing in an input
@@ -714,8 +729,19 @@
                 />
               </div>
               
-              <div class="mb-6 text-3xl font-semibold text-gray-900">
-                {{ currentCard.card.terminology }}
+              <div class="flex items-center justify-center gap-3 mb-6">
+                <div class="text-3xl font-semibold text-gray-900">
+                  {{ currentCard.card.terminology }}
+                </div>
+                <Button
+                  icon="pi pi-volume-up"
+                  rounded
+                  text
+                  :loading="isPlayingAudio"
+                  @click="playTerminology"
+                  class="text-orange-500 hover:bg-orange-50"
+                  aria-label="Play pronunciation"
+                />
               </div>
 
               <!-- Difficulty Indicator -->

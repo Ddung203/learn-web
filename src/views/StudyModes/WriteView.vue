@@ -7,6 +7,7 @@
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
   import type { ICreateSessionRequest } from '~/interfaces/statistics.interface';
+  import { ttsService } from '~/services';
 
   interface WriteQuestion {
     card: ICardSetCard;
@@ -34,6 +35,7 @@
   const inputRef = ref<any>(null);
   const studyDirection = ref<StudyDirection>('term-to-def');
   const showDirectionDialog = ref(false);
+  const isPlayingAudio = ref(false);
 
   const currentQuestion = computed(() => {
     if (questions.value.length === 0) return null;
@@ -196,6 +198,23 @@
 
   const goBack = () => {
     router.push(`/card-sets/${route.params.id}`);
+  };
+
+  const playQuestion = async () => {
+    if (!currentQuestion.value || isPlayingAudio.value) return;
+
+    const textToPlay = studyDirection.value === 'term-to-def' 
+      ? currentQuestion.value.card.terminology 
+      : currentQuestion.value.card.define;
+
+    try {
+      isPlayingAudio.value = true;
+      await ttsService.playText(textToPlay);
+    } catch (error) {
+      console.error('Failed to play audio:', error);
+    } finally {
+      isPlayingAudio.value = false;
+    }
   };
 
   const handleKeyPress = (event: KeyboardEvent) => {
@@ -361,8 +380,19 @@
                 />
               </div>
               
-              <div class="mb-6 text-3xl font-semibold text-gray-900">
-                {{ studyDirection === 'term-to-def' ? currentQuestion.card.terminology : currentQuestion.card.define }}
+              <div class="flex items-center justify-center gap-3 mb-6">
+                <div class="text-3xl font-semibold text-gray-900">
+                  {{ studyDirection === 'term-to-def' ? currentQuestion.card.terminology : currentQuestion.card.define }}
+                </div>
+                <Button
+                  icon="pi pi-volume-up"
+                  rounded
+                  text
+                  :loading="isPlayingAudio"
+                  @click="playQuestion"
+                  class="text-purple-500 hover:bg-purple-50"
+                  aria-label="Play pronunciation"
+                />
               </div>
 
               <!-- Input -->

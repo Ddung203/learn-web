@@ -2,6 +2,7 @@
   import { ref, computed, onMounted } from 'vue';
   import type { ICardSet, ICardSetCard } from '~/interfaces';
   import { useLocale } from '~/composables/useLocale';
+  import { ttsService } from '~/services';
 
   interface Props {
     cardSet: ICardSet;
@@ -21,6 +22,7 @@
   const currentQuestionIndex = ref(0);
   const isSubmitted = ref(false);
   const showResults = ref(false);
+  const isPlayingAudio = ref(false);
 
   const currentQuestion = computed(() => {
     if (questions.value.length === 0) return null;
@@ -106,6 +108,19 @@
     showResults.value = false;
   };
 
+  const playTerminology = async () => {
+    if (!currentQuestion.value || isPlayingAudio.value) return;
+
+    try {
+      isPlayingAudio.value = true;
+      await ttsService.playText(currentQuestion.value.card.terminology);
+    } catch (error) {
+      console.error('Failed to play audio:', error);
+    } finally {
+      isPlayingAudio.value = false;
+    }
+  };
+
   const getOptionClass = (option: string) => {
     if (!currentQuestion.value) return 'border-gray-300';
     
@@ -168,8 +183,19 @@
             <div class="text-sm text-gray-500 mb-4">
               {{ t('studyModes.test.whatIsDefinition') }}
             </div>
-            <div class="text-2xl font-semibold mb-6">
-              {{ currentQuestion.card.terminology }}
+            <div class="flex items-center justify-center gap-3 mb-6">
+              <div class="text-2xl font-semibold">
+                {{ currentQuestion.card.terminology }}
+              </div>
+              <Button
+                icon="pi pi-volume-up"
+                rounded
+                text
+                :loading="isPlayingAudio"
+                @click="playTerminology"
+                class="text-blue-500 hover:bg-blue-50"
+                aria-label="Play pronunciation"
+              />
             </div>
 
             <!-- Options -->
