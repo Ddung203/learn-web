@@ -8,12 +8,12 @@ import (
 
 type CardSetCard struct {
 	ID           string `json:"id" bson:"id"`
-	Terminology  string `json:"terminology" bson:"terminology" binding:"required"`
-	Define       string `json:"define" bson:"define" binding:"required"`
-	Example      string `json:"example,omitempty" bson:"example,omitempty"`
-	ImageURL     string `json:"image_url,omitempty" bson:"image_url,omitempty"`
-	PartOfSpeech string `json:"part_of_speech,omitempty" bson:"part_of_speech,omitempty"`
-	Phonetic     string `json:"phonetic,omitempty" bson:"phonetic,omitempty"`
+	Terminology  string `json:"terminology" bson:"terminology" binding:"required,max=500"`
+	Define       string `json:"define" bson:"define" binding:"required,max=2000"`
+	Example      string `json:"example,omitempty" bson:"example,omitempty" binding:"max=1000"`
+	ImageURL     string `json:"image_url,omitempty" bson:"image_url,omitempty" binding:"max=500"`
+	PartOfSpeech string `json:"part_of_speech,omitempty" bson:"part_of_speech,omitempty" binding:"max=50"`
+	Phonetic     string `json:"phonetic,omitempty" bson:"phonetic,omitempty" binding:"max=100"`
 }
 
 type StudyProgress struct {
@@ -25,9 +25,9 @@ type StudyProgress struct {
 type CardSet struct {
 	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserID        primitive.ObjectID `json:"user_id" bson:"user_id"`
-	Title         string             `json:"title" bson:"title" binding:"required"`
-	Description   string             `json:"description" bson:"description"`
-	Language      string             `json:"language" bson:"language"`
+	Title         string             `json:"title" bson:"title" binding:"required,max=200"`
+	Description   string             `json:"description" bson:"description" binding:"max=1000"`
+	Language      string             `json:"language" bson:"language" binding:"max=10"`
 	Cards         []CardSetCard      `json:"cards" bson:"cards"`
 	Progress      StudyProgress      `json:"progress" bson:"progress"`
 	IsPublic      bool               `json:"is_public" bson:"is_public"`
@@ -37,15 +37,15 @@ type CardSet struct {
 }
 
 type CreateCardSetRequest struct {
-	Title       string        `json:"title" binding:"required"`
-	Description string        `json:"description"`
-	Language    string        `json:"language"`
+	Title       string        `json:"title" binding:"required,max=200"`
+	Description string        `json:"description" binding:"max=1000"`
+	Language    string        `json:"language" binding:"max=10"`
 	Cards       []CardSetCard `json:"cards" binding:"required,min=1"`
 }
 
 type UpdateCardSetRequest struct {
-	Title       string        `json:"title"`
-	Description string        `json:"description"`
-	Language    string        `json:"language"`
+	Title       string        `json:"title" binding:"max=200"`
+	Description string        `json:"description" binding:"max=1000"`
+	Language    string        `json:"language" binding:"max=10"`
 	Cards       []CardSetCard `json:"cards"`
 }

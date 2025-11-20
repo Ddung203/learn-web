@@ -74,7 +74,9 @@
   };
 
   const startEditDateOfBirth = () => {
-    newDateOfBirth.value = user.value?.date_of_birth ? new Date(user.value.date_of_birth) : null;
+    newDateOfBirth.value = user.value?.date_of_birth
+      ? new Date(user.value.date_of_birth)
+      : null;
     editingDateOfBirth.value = true;
   };
 
@@ -86,7 +88,9 @@
   const saveDateOfBirth = async () => {
     saving.value = true;
     try {
-      await authStore.updateProfile({ date_of_birth: newDateOfBirth.value?.toISOString() });
+      await authStore.updateProfile({
+        date_of_birth: newDateOfBirth.value?.toISOString(),
+      });
       toast.add({
         severity: 'success',
         summary: t('common.success'),
@@ -271,6 +275,7 @@
                     class="flex-1"
                     :placeholder="t('profile.edit.enterFullName')"
                     :disabled="saving"
+                    maxlength="50"
                     @keyup.enter="saveFullName"
                   />
                   <div
@@ -308,7 +313,13 @@
                   class="flex items-center gap-2"
                 >
                   <span class="text-lg font-medium text-gray-900">
-                    {{ user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString(isVietnamese ? 'vi-VN' : 'en-US') : t('profile.notSet') }}
+                    {{
+                      user.date_of_birth
+                        ? new Date(user.date_of_birth).toLocaleDateString(
+                            isVietnamese ? 'vi-VN' : 'en-US'
+                          )
+                        : t('profile.notSet')
+                    }}
                   </span>
                   <Button
                     icon="pi pi-pencil"
@@ -332,7 +343,9 @@
                     dateFormat="dd/mm/yy"
                     showIcon
                   />
-                  <div class="flex flex-row-reverse justify-start gap-4 lg:flex-row">
+                  <div
+                    class="flex flex-row-reverse justify-start gap-4 lg:flex-row"
+                  >
                     <Button
                       icon="pi pi-check"
                       rounded

@@ -29,7 +29,16 @@
     title: '',
     description: '',
     language: '',
-    data: [{ terminology: '', define: '', example: '', image_url: '', part_of_speech: '', phonetic: '' }] as Array<{
+    data: [
+      {
+        terminology: '',
+        define: '',
+        example: '',
+        image_url: '',
+        part_of_speech: '',
+        phonetic: '',
+      },
+    ] as Array<{
       id?: string;
       terminology: string;
       define: string;
@@ -53,7 +62,14 @@
 
   // Thêm mới 1 thẻ
   const addItem = () => {
-    formData.data.push({ terminology: '', define: '', example: '', image_url: '', part_of_speech: '', phonetic: '' });
+    formData.data.push({
+      terminology: '',
+      define: '',
+      example: '',
+      image_url: '',
+      part_of_speech: '',
+      phonetic: '',
+    });
   };
   const addItems = () => {
     isShowPopup.value = true;
@@ -61,22 +77,24 @@
 
   // Handle imported cards from popup
   const handleImportCards = (
-    cards: Array<{ 
-      terminology: string; 
-      define: string; 
-      example?: string; 
+    cards: Array<{
+      terminology: string;
+      define: string;
+      example?: string;
       image_url?: string;
       part_of_speech?: string;
       phonetic?: string;
     }>
   ) => {
-    formData.data.push(...cards.map(card => ({ 
-      ...card, 
-      example: card.example || '', 
-      image_url: card.image_url || '', 
-      part_of_speech: card.part_of_speech || '', 
-      phonetic: card.phonetic || '' 
-    })));
+    formData.data.push(
+      ...cards.map((card) => ({
+        ...card,
+        example: card.example || '',
+        image_url: card.image_url || '',
+        part_of_speech: card.part_of_speech || '',
+        phonetic: card.phonetic || '',
+      }))
+    );
     toast.add({
       severity: 'success',
       summary: t('common.success'),
@@ -88,7 +106,13 @@
   // Cập nhật dữ liệu của 1 thẻ
   const updateItem = (
     index: number,
-    field: 'terminology' | 'define' | 'example' | 'image_url' | 'part_of_speech' | 'phonetic',
+    field:
+      | 'terminology'
+      | 'define'
+      | 'example'
+      | 'image_url'
+      | 'part_of_speech'
+      | 'phonetic',
     value: string
   ) => {
     formData.data[index][field] = value;
@@ -109,10 +133,12 @@
     if (!editingCardSetId.value) return;
 
     try {
-      const updatedCardSet = await cardSetService.generatePhonetics(editingCardSetId.value);
-      
+      const updatedCardSet = await cardSetService.generatePhonetics(
+        editingCardSetId.value
+      );
+
       // Update form data with generated phonetics
-      formData.data = updatedCardSet.cards.map(card => ({
+      formData.data = updatedCardSet.cards.map((card) => ({
         id: card.id,
         terminology: card.terminology,
         define: card.define,
@@ -140,12 +166,12 @@
       isEditMode.value = true;
 
       const cardSet = await cardSetStore.fetchCardSet(cardSetId);
-      
+
       // Populate form with existing data
       formData.title = cardSet.title;
       formData.description = cardSet.description;
       formData.language = cardSet.language || '';
-      formData.data = cardSet.cards.map(card => ({
+      formData.data = cardSet.cards.map((card) => ({
         id: card.id,
         terminology: card.terminology,
         define: card.define,
@@ -200,20 +226,23 @@
 
       if (isEditMode.value && editingCardSetId.value) {
         // Update existing card set
-        const updatedCardSet = await cardSetStore.updateCardSet(editingCardSetId.value, {
-          title: formData.title,
-          description: formData.description,
-          language: formData.language,
-          cards: validData.map(card => ({
-            id: card.id || '',
-            terminology: card.terminology,
-            define: card.define,
-            example: card.example,
-            image_url: card.image_url,
-            part_of_speech: card.part_of_speech,
-            phonetic: card.phonetic,
-          })),
-        });
+        const updatedCardSet = await cardSetStore.updateCardSet(
+          editingCardSetId.value,
+          {
+            title: formData.title,
+            description: formData.description,
+            language: formData.language,
+            cards: validData.map((card) => ({
+              id: card.id || '',
+              terminology: card.terminology,
+              define: card.define,
+              example: card.example,
+              image_url: card.image_url,
+              part_of_speech: card.part_of_speech,
+              phonetic: card.phonetic,
+            })),
+          }
+        );
 
         // Auto-generate phonetics if checkbox is checked and language is English
         if (autoGeneratePhonetics.value && formData.language === 'en') {
@@ -222,7 +251,10 @@
             toast.add({
               severity: 'success',
               summary: t('common.success'),
-              detail: t('studyModule.toast.updateSuccess') + '. ' + t('studyModule.toast.generatePhoneticsSuccess'),
+              detail:
+                t('studyModule.toast.updateSuccess') +
+                '. ' +
+                t('studyModule.toast.generatePhoneticsSuccess'),
               life: 3000,
             });
           } else {
@@ -277,7 +309,9 @@
       toast.add({
         severity: 'error',
         summary: t('common.error'),
-        detail: isEditMode.value ? t('studyModule.toast.updateError') : t('studyModule.toast.createError'),
+        detail: isEditMode.value
+          ? t('studyModule.toast.updateError')
+          : t('studyModule.toast.createError'),
         life: 3000,
       });
       console.error('Error saving study module:', error);
@@ -323,7 +357,11 @@
             :disabled="isLoading"
           />
           <Button
-            :label="isEditMode ? t('studyModule.updateButton') : t('studyModule.createButton')"
+            :label="
+              isEditMode
+                ? t('studyModule.updateButton')
+                : t('studyModule.createButton')
+            "
             @click="saveStudyModule"
             :disabled="isLoading"
           />
@@ -336,19 +374,19 @@
           v-model="formData.title"
           class="w-full py-4"
           :placeholder="t('studyModule.titlePlaceholder')"
-          maxlength="254"
+          maxlength="200"
         />
         <InputText
           v-model="formData.description"
-          maxlength="500"
+          maxlength="1000"
           class="w-full py-4"
           :placeholder="t('studyModule.descriptionPlaceholder')"
         />
       </div>
 
       <!-- Import Buttons -->
-      <div class="flex justify-between items-center gap-2 mt-8 lg:gap-4">
-        <div class="flex gap-2 lg:gap-5 flex-wrap items-center">
+      <div class="flex items-center justify-between gap-2 mt-8 lg:gap-4">
+        <div class="flex flex-wrap items-center gap-2 lg:gap-5">
           <Button
             icon="pi pi-plus"
             severity="success"
@@ -369,13 +407,19 @@
             :placeholder="t('studyModule.languagePlaceholder')"
             class="w-48"
           />
-          <div v-if="isEditMode && formData.language === 'en'" class="flex items-center gap-2">
-            <Checkbox 
-              v-model="autoGeneratePhonetics" 
-              inputId="autoGeneratePhonetics" 
+          <div
+            v-if="isEditMode && formData.language === 'en'"
+            class="flex items-center gap-2"
+          >
+            <Checkbox
+              v-model="autoGeneratePhonetics"
+              inputId="autoGeneratePhonetics"
               :binary="true"
             />
-            <label for="autoGeneratePhonetics" class="text-sm cursor-pointer">
+            <label
+              for="autoGeneratePhonetics"
+              class="text-sm cursor-pointer"
+            >
               {{ t('studyModule.autoGeneratePhonetics') }}
             </label>
           </div>

@@ -4,13 +4,13 @@
   import { useLocale } from '~/composables/useLocale';
 
   const { t } = useLocale();
-  
+
   const props = defineProps<{
     index: number;
-    item: { 
-      terminology: string; 
-      define: string; 
-      example?: string; 
+    item: {
+      terminology: string;
+      define: string;
+      example?: string;
       image_url?: string;
       part_of_speech?: string;
       phonetic?: string;
@@ -21,7 +21,13 @@
     (
       e: 'update',
       index: number,
-      field: 'terminology' | 'define' | 'example' | 'image_url' | 'part_of_speech' | 'phonetic',
+      field:
+        | 'terminology'
+        | 'define'
+        | 'example'
+        | 'image_url'
+        | 'part_of_speech'
+        | 'phonetic',
       value: string
     ): void;
     (e: 'remove', index: number): void;
@@ -29,7 +35,16 @@
 
   const showImageSearch = ref(false);
 
-  const handleInput = (field: 'terminology' | 'define' | 'example' | 'image_url' | 'part_of_speech' | 'phonetic', value: string) => {
+  const handleInput = (
+    field:
+      | 'terminology'
+      | 'define'
+      | 'example'
+      | 'image_url'
+      | 'part_of_speech'
+      | 'phonetic',
+    value: string
+  ) => {
     emits('update', props.index, field, value);
   };
 
@@ -79,6 +94,7 @@
             type="text"
             class="w-full"
             :value="item.terminology"
+            maxlength="500"
             @input="
               handleInput(
                 'terminology',
@@ -98,6 +114,7 @@
             type="text"
             class="w-full"
             :value="item.define"
+            maxlength="2000"
             @input="
               handleInput('define', ($event.target as HTMLInputElement).value)
             "
@@ -116,6 +133,7 @@
           type="text"
           class="w-full"
           :value="item.example"
+          maxlength="1000"
           @input="
             handleInput('example', ($event.target as HTMLInputElement).value)
           "
@@ -124,7 +142,9 @@
         <label
           for="example"
           class="uppercase text-sm font-bold text-[#939bb4]"
-          >{{ t('studyModule.example') }} ({{ t('studyModule.optional') }})</label
+          >{{ t('studyModule.example') }} ({{
+            t('studyModule.optional')
+          }})</label
         >
       </div>
 
@@ -136,14 +156,19 @@
             class="w-full"
             :value="item.part_of_speech"
             @input="
-              handleInput('part_of_speech', ($event.target as HTMLInputElement).value)
+              handleInput(
+                'part_of_speech',
+                ($event.target as HTMLInputElement).value
+              )
             "
             :placeholder="t('studyModule.partOfSpeechPlaceholder')"
           />
           <label
             for="part_of_speech"
             class="uppercase text-sm font-bold text-[#939bb4]"
-            >{{ t('studyModule.partOfSpeech') }} ({{ t('studyModule.optional') }})</label
+            >{{ t('studyModule.partOfSpeech') }} ({{
+              t('studyModule.optional')
+            }})</label
           >
         </div>
 
@@ -152,6 +177,7 @@
             type="text"
             class="w-full"
             :value="item.phonetic"
+            maxlength="100"
             @input="
               handleInput('phonetic', ($event.target as HTMLInputElement).value)
             "
@@ -160,7 +186,9 @@
           <label
             for="phonetic"
             class="uppercase text-sm font-bold text-[#939bb4]"
-            >{{ t('studyModule.phonetic') }} ({{ t('studyModule.optional') }})</label
+            >{{ t('studyModule.phonetic') }} ({{
+              t('studyModule.optional')
+            }})</label
           >
         </div>
       </div>
@@ -174,12 +202,15 @@
           size="small"
           @click="openImageSearch"
         />
-        
-        <div v-if="item.image_url" class="relative inline-block">
+
+        <div
+          v-if="item.image_url"
+          class="relative inline-block"
+        >
           <img
             :src="item.image_url"
             alt="Card image"
-            class="h-20 rounded-lg border-2 border-gray-200"
+            class="h-20 border-2 border-gray-200 rounded-lg"
           />
           <Button
             icon="pi pi-times"

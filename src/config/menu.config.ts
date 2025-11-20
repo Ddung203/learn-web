@@ -65,12 +65,12 @@ export const createMenuItems = (
   if (isAuthenticated) {
     return [
       homeItem,
-      guideItem,
       cardSetsItem,
       globalCardSetsItem,
       statisticsItem,
       studyModuleItem,
       profileItem,
+      guideItem,
       logoutItem,
     ];
   }
