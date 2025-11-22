@@ -8,7 +8,7 @@
   import HeaderThird from '~/components/HeaderThird.vue';
   import { useLocale } from '~/composables/useLocale';
   import { useAuthStore } from '~/stores';
-  import { ttsService } from '~/services';
+  import { ttsService, type Voice } from '~/services';
 
   const { t, isVietnamese } = useLocale();
   const authStore = useAuthStore();
@@ -19,9 +19,7 @@
   const editingDateOfBirth = ref(false);
   const newDateOfBirth = ref<Date | null>(null);
   const saving = ref(false);
-  const voices = ref<
-    Array<{ id: string; name: string; engine: string; gender: string }>
-  >([]);
+  const voices = ref<Voice[]>([]);
   const selectedVoice = ref('');
   const loadingVoices = ref(false);
   const savingVoice = ref(false);
@@ -136,7 +134,7 @@
       if (user.value?.preferred_voice_id) {
         selectedVoice.value = user.value.preferred_voice_id;
       } else if (voices.value.length > 0) {
-        selectedVoice.value = voices.value[0].id;
+        selectedVoice.value = voices.value[0].key;
       }
     } catch (error) {
       console.error('Failed to load voices:', error);
@@ -379,7 +377,7 @@
                     filter
                     :options="voices"
                     optionLabel="name"
-                    optionValue="id"
+                    optionValue="key"
                     :placeholder="t('profile.selectVoice')"
                     class="flex-1"
                     :loading="loadingVoices"
@@ -389,7 +387,7 @@
                       <div class="flex items-center gap-2">
                         <span>{{ option.name }}</span>
                         <span class="text-xs text-gray-500"
-                          >({{ option.engine }})</span
+                          >({{ option.language_native }})</span
                         >
                       </div>
                     </template>

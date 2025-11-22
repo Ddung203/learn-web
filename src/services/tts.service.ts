@@ -1,11 +1,12 @@
-const TTS_API_BASE = 'https://unvicarious-laronda-impeccably.ngrok-free.dev/api/v1';
-const DEFAULT_VOICE = 'larynx:mary_ann-glow_tts';
+const TTS_API_BASE = 'https://tts.ddung203.id.vn/api/v1';
+const DEFAULT_VOICE = 'en_UK/apope_low';
 
-interface Voice {
-  id: string;
+export interface Voice {
+  key: string;
   name: string;
-  engine: string;
-  gender: string;
+  description: string;
+  language: string;
+  language_native: string;
 }
 
 class TTSService {
@@ -14,11 +15,7 @@ class TTSService {
 
   async getVoices(): Promise<Voice[]> {
     try {
-      const response = await fetch(`${TTS_API_BASE}/voices`, {
-        headers: {
-          'ngrok-skip-browser-warning': '1',
-        },
-      });
+      const response = await fetch(`${TTS_API_BASE}/voices`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch voices');
@@ -31,21 +28,21 @@ class TTSService {
     }
   }
 
-  async synthesizeSpeech(text: string, voiceId: string = DEFAULT_VOICE): Promise<Blob> {
-    const cacheKey = `${text}-${voiceId}`;
+  async synthesizeSpeech(
+    text: string, 
+    voiceId: string = DEFAULT_VOICE,
+    lengthScale: number = 1.0
+  ): Promise<Blob> {
+    const cacheKey = `${text}-${voiceId}-${lengthScale}`;
     
     if (this.audioCache.has(cacheKey)) {
       return this.audioCache.get(cacheKey)!;
     }
 
     try {
-      const url = `${TTS_API_BASE}/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voiceId)}`;
+      const url = `${TTS_API_BASE}/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voiceId)}&length_scale=${lengthScale}`;
       
-      const response = await fetch(url, {
-        headers: {
-          'ngrok-skip-browser-warning': '1',
-        },
-      });
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`TTS request failed: ${response.status}`);
@@ -66,7 +63,7 @@ class TTSService {
     }
   }
 
-  async playText(text: string, voiceId?: string): Promise<void> {
+  async playText(text: string, voiceId?: string, lengthScale: number = 1.0): Promise<void> {
     const effectiveVoiceId = voiceId || this.getUserPreferredVoice() || DEFAULT_VOICE;
     
     try {
@@ -75,7 +72,7 @@ class TTSService {
         this.currentAudio = null;
       }
 
-      const blob = await this.synthesizeSpeech(text, effectiveVoiceId);
+      const blob = await this.synthesizeSpeech(text, effectiveVoiceId, lengthScale);
       const audioUrl = URL.createObjectURL(blob);
       
       const audio = new Audio(audioUrl);

@@ -8,3 +8,4 @@ export { ttsService } from './tts.service';
 export type { IUser, ILoginRequest, IRegisterRequest, ILoginResponse } from './auth.service';
 export type { ICreateCardSetRequest, IUpdateCardSetRequest } from './cardset.service';
 export type { IPixabayImage, IPixabayResponse } from './image.service';
+export type { Voice } from './tts.service';
