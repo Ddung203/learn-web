@@ -446,6 +446,7 @@ export default {
       listenAndSelect: 'Listen to the audio and select the correct definition',
       playAudio: 'Play Audio',
       pressSpaceToReplay: 'Press Space to replay',
+      onlyEnglishSupported: 'Audio playback is only available for English card sets',
       check: 'Check Answer',
       continue: 'Continue',
       finish: 'Finish',

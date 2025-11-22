@@ -433,6 +433,10 @@
   const playTerminology = async () => {
     if (!currentCard.value || isPlayingAudio.value) return;
 
+    if (cardSet.value?.language !== 'en') {
+      return;
+    }
+
     try {
       isPlayingAudio.value = true;
       await ttsService.playText(currentCard.value.card.terminology);

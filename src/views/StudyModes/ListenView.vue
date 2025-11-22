@@ -96,6 +96,10 @@
   const playCurrentQuestion = async () => {
     if (!currentQuestion.value || isPlayingAudio.value) return;
 
+    if (cardSet.value?.language !== 'en') {
+      return;
+    }
+
     try {
       isPlayingAudio.value = true;
       await ttsService.playText(currentQuestion.value.card.terminology);
@@ -352,6 +356,7 @@
               <!-- Audio Player -->
               <div class="flex flex-col items-center justify-center gap-4 mb-8">
                 <Button
+                  v-if="cardSet?.language === 'en'"
                   icon="pi pi-volume-up"
                   :label="t('studyModes.listen.playAudio')"
                   size="large"
@@ -361,7 +366,11 @@
                   class="text-white bg-indigo-500 hover:bg-indigo-600"
                   style="min-width: 200px"
                 />
-                <div class="text-xs text-gray-400">
+                <div v-else class="px-4 py-3 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <i class="mr-1 pi pi-exclamation-triangle"></i>
+                  {{ t('studyModes.listen.onlyEnglishSupported') }}
+                </div>
+                <div v-if="cardSet?.language === 'en'" class="text-xs text-gray-400">
                   <i class="mr-1 pi pi-info-circle"></i>
                   {{ t('studyModes.listen.pressSpaceToReplay') }}
                 </div>

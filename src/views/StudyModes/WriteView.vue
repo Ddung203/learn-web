@@ -203,6 +203,10 @@
   const playQuestion = async () => {
     if (!currentQuestion.value || isPlayingAudio.value) return;
 
+    if (cardSet.value?.language !== 'en') {
+      return;
+    }
+
     const textToPlay = studyDirection.value === 'term-to-def' 
       ? currentQuestion.value.card.terminology 
       : currentQuestion.value.card.define;

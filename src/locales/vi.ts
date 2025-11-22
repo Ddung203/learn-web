@@ -444,6 +444,7 @@ export default {
       listenAndSelect: 'Nghe âm thanh và chọn định nghĩa đúng',
       playAudio: 'Phát âm thanh',
       pressSpaceToReplay: 'Nhấn Space để nghe lại',
+      onlyEnglishSupported: 'Phát âm chỉ khả dụng cho các bộ thẻ tiếng Anh',
       check: 'Kiểm tra',
       continue: 'Tiếp tục',
       finish: 'Hoàn thành',

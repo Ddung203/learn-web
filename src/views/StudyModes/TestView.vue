@@ -217,6 +217,10 @@
   const playQuestion = async () => {
     if (!currentQuestion.value || isPlayingAudio.value) return;
 
+    if (cardSet.value?.language !== 'en') {
+      return;
+    }
+
     try {
       isPlayingAudio.value = true;
       await ttsService.playText(currentQuestion.value.questionText);

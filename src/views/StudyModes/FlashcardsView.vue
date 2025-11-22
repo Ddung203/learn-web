@@ -98,6 +98,10 @@
   const playCurrentText = async () => {
     if (!currentCard.value || isPlayingAudio.value) return;
 
+    if (cardSet.value?.language !== 'en') {
+      return;
+    }
+
     const textToPlay = isFlipped.value 
       ? (showingTerm.value ? currentCard.value.define : currentCard.value.terminology)
       : (showingTerm.value ? currentCard.value.terminology : currentCard.value.define);
